@@ -5,8 +5,8 @@ import tailwindcss from "@tailwindcss/vite";
 export default Application(
   ({ buildFor, plugin, vitePlugin, serverEntry, clientEntry }) => {
     buildFor(BuildTargets.Cloudflare);
-    serverEntry("src/serverMain/main");
-    clientEntry("src/clientMain/main");
+    serverEntry("src/serverMain");
+    clientEntry("src/clientMain");
     plugin(react);
     vitePlugin(tailwindcss());
   },

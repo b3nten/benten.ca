@@ -8,7 +8,7 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 // Create renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(playground.clientWidth, playground.clientHeight);
 playground.appendChild(renderer.domElement);
 
 // Vertex shader
@@ -56,7 +56,7 @@ const material = new THREE.ShaderMaterial({
   uniforms: {
     u_time: { value: 0.0 },
     u_resolution: {
-      value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      value: new THREE.Vector2(playground.clientWidth, playground.clientHeight),
     },
   },
 });
@@ -67,11 +67,11 @@ const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
 // Handle window resize
-window.addEventListener("resize", () => {
-  renderer.setSize(window.innerWidth, window.innerHeight);
+playground.addEventListener("resize", () => {
+  renderer.setSize(playground.clientWidth, playground.clientHeight);
   material.uniforms.u_resolution.value.set(
-    window.innerWidth,
-    window.innerHeight,
+    playground.clientWidth,
+    playground.clientHeight,
   );
 });
 

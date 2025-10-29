@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <script type="module" src="https://cdn.jsdelivr.net/npm/@quietui/quiet-browser@1.6.1/dist/quiet.loader.js"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@quietui/quiet-browser@1.6.1/dist/themes/quiet.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@4.1.16/preflight.css">
         <link rel="modulepreload" href="https://esm.sh/@100x/engine@0.0.5/es2022/asserts.mjs">
         <link rel="modulepreload" href="https://esm.sh/@100x/engine@0.0.5/es2022/assets.mjs">
         <link rel="modulepreload" href="https://esm.sh/@100x/engine@0.0.5/es2022/checks.mjs">
@@ -45,13 +45,14 @@
         <title>Playground</title>
 
         <!-- Styles -->
-        <style type="text/tailwindcss">
+        <style>
               @theme {
                 --color-clifford: #da373d;
               }
 
               body {
                   background-color: black;
+                  font-family: monospace;
               }
 
               .cm-editor {
@@ -62,21 +63,31 @@
                   user-select: none;
               }
 
-              repl-body {
+              quiet-splitter {
                   position: fixed;
+                  display: relative;
+                  inset: 0;
+              }
+
+              quiet-splitter::part(end), quiet-splitter::part(start) {
+                  position: relative;
+              }
+
+              repl-ui {
+                  position: absolute;
                   inset: 0;
               }
 
               repl-toolbar {
                   display: flex;
-                  position: fixed;
+                  position: absolute;
                   top: 0;
                   left: 0;
                   right: 0;
                   justify-content: space-between;
                   align-items: center;
                   padding-inline: 1rem;
-                  padding-top: 4px;
+                  padding-top: 8px;
                   padding-bottom: 8px;
                   background-color: black;
                   color: white;
@@ -84,7 +95,7 @@
               }
 
               repl-editor {
-                  position: fixed;
+                  position: absolute;
                   inset: 0;
                   top: 40px;
                   overflow: scroll;
@@ -92,7 +103,7 @@
               }
 
               repl-playground {
-                  position: fixed;
+                  position: absolute;
                   inset: 0;
                   z-index: -10;
                   overflow-x: hidden;
@@ -107,6 +118,7 @@
                 padding: 1rem;
                 font-family: monospace;
                 color: red;
+                text-align: right;
               }
         </style>
 
@@ -126,6 +138,7 @@
           const resetFileEvent = createEvent("reset-file")
           const runCodeEvent = createEvent("run-code")
           const toggleEditorEvent = createEvent("toggle-editor")
+          const toggleSplitViewEvent = createEvent("toggle-split-pane")
 
           class ReplErrorBar extends HTMLElement {
             static {
@@ -138,24 +151,28 @@
             static {
               customElements.define("repl-editor", this)
             }
+
             setup(state, events) {
               this.state = state;
               this.events = events;
             }
 
             connectedCallback() {
+              this.update()
               this.events.register(stateUpdatedEvent, this.update)
             }
 
-            update = () => {
-              console.log("Updating editor")
-              if(this.state.editorMode === "fullscreen") {
-                this.style.display = "block"
-              } else {
-                this.style.display = "none"
-              }
+            disconnectedCallback() {
+              this.events.unregister(stateUpdatedEvent, this.update)
             }
 
+            update = () => {
+              if(this.state.editorMode === "hidden") {
+                this.style.display = "none"
+              } else {
+                this.style.display = "block"
+              }
+            }
           }
 
           class ReplToolbar extends HTMLElement {
@@ -188,24 +205,26 @@
               return div;
             })
 
-            connectedCallback() {
-              const files = JSON.parse(document.querySelector("repl-ui").getAttribute("files"));
+            update = () => {
+              const files = this.state.files
 
               this.fileSelector.innerHTML = `
                 <p color="white">demos</p>
-                <quiet-select id="file-selector" name="file" size="xs">
+                <quiet-select id="file-selector" name="file" size="xs" value=${this.state.currentFile.href}>
                   ${files.map(({name, href}) => `<option value="${href}">${name}</option>`)}
                 </quiet-select>
               `
               this.appendChild(this.fileSelector)
 
               this.rightToolbar.innerHTML = `
-                <quiet-button id="play-button" size="xs"><quiet-icon name="player-play"></quiet-icon></quiet-button>
+                <quiet-button icon-label="Run" id="play-button" size="xs"><quiet-icon name="player-play"></quiet-icon></quiet-button>
                 <quiet-tooltip for="play-button">Run the code</quiet-tooltip>
-                <quiet-button id="restore-button" size="xs"><quiet-icon name="restore"></quiet-icon></quiet-button>
+                <quiet-button icon-label="Reset" id="restore-button" size="xs"><quiet-icon name="restore"></quiet-icon></quiet-button>
                 <quiet-tooltip for="restore-button">Reset the code</quiet-tooltip>
-                <quiet-button id="show-editor-button" size="xs"><quiet-icon name="code"></quiet-icon></quiet-button>
+                <quiet-button icon-label="Toggle Editor" id="show-editor-button" size="xs"><quiet-icon name="code"></quiet-icon></quiet-button>
                 <quiet-tooltip for="show-editor-button">Toggle editor visibility</quiet-tooltip>
+                <quiet-button icon-label="Toggle Split Pane" id="toggle-split-view-button" size="xs"><quiet-icon name="layout-columns"></quiet-icon></quiet-button>
+                <quiet-tooltip for="toggle-split-view-button">Toggle split pane</quiet-tooltip>
               `
               this.appendChild(this.rightToolbar)
 
@@ -224,10 +243,47 @@
               this.querySelector("#show-editor-button").addEventListener("click", () => {
                 this.events.notify(toggleEditorEvent);
               });
+
+              this.querySelector("#toggle-split-view-button").addEventListener("click", () => {
+                this.events.notify(toggleSplitViewEvent);
+              });
+
+              this.querySelector("#show-editor-button").setAttribute("toggle", this.state.editorMode !== "hidden" ? "on" : "off")
+              this.querySelector("#toggle-split-view-button").setAttribute("toggle", this.state.editorMode === "split" ? "on" : "off")
+            }
+
+            connectedCallback() {
+              this.events.register(stateUpdatedEvent, this.update);
+              this.update();
+            }
+
+            disconnectedCallback() {
+              this.events.unregister(stateUpdatedEvent, this.update);
+            }
+          }
+
+          class ReplPlayground extends HTMLElement {
+            static {
+              customElements.define("repl-playground", this)
+            }
+
+            observer = new ResizeObserver(() => {
+              this.dispatchEvent(new CustomEvent("resize"));
+            })
+
+            connectedCallback() {
+              this.observer.observe(this);
+            }
+
+            disconnectedCallback() {
+              this.observer.unobserve(this);
             }
           }
 
           class Repl extends HTMLElement {
+            static {
+              customElements.define("js-repl", this)
+            }
 
             static logger = new Logger(
               "repl",
@@ -235,16 +291,12 @@
               colors.sunset
             )
 
-            static {
-              customElements.define("repl-ui", this)
-            }
-
             events = new EventManager;
 
             state = {
               files: null, // [{ name: string, href: "url" | "localstorage:{name}" }]
               currentFile: null, // { name: string, href: "url" | "localstorage:{name}" }
-              editorMode: "fullscreen" // hidden, fullscreen, split
+              editorMode: null, // hidden, fullscreen, split
             }
 
             editor;
@@ -255,14 +307,23 @@
 
             editorWidget = document.createElement("repl-editor")
 
+            uiWidget = document.createElement("repl-ui")
+
+            playgroundWidget = document.createElement("repl-playground")
+
+            splitterWidget = document.createElement("quiet-splitter")
+
             cleanupFns = new Set;
 
             connectedCallback() {
               this.state.files = JSON.parse(this.getAttribute("files") ?? "[]")
               const maybeFile = new URL(location.href).searchParams.get("file")
               this.state.currentFile = maybeFile
-                ? this.state.files.find(f => f.name === maybeFile)
+                ? this.state.files.find(f => f.href === maybeFile)
                 : this.state.files[0]
+
+              const maybeEditorMode = new URL(location.href).searchParams.get("editorMode")
+              this.state.editorMode = maybeEditorMode ?? "fullscreen"
 
               this.editor = new EditorView({
                 extensions: [basicSetup, boysAndGirls, javascript()],
@@ -276,6 +337,7 @@
               this.events.register(resetFileEvent, this.resetFile)
               this.events.register(runCodeEvent, this.runCodeInEditor)
               this.events.register(toggleEditorEvent, this.toggleEditor)
+              this.events.register(toggleSplitViewEvent, this.toggleSplitView)
 
               document.addEventListener('keydown', (event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key === 's') {
@@ -288,8 +350,10 @@
               [this.errorWidget, this.toolbarWidget, this.editorWidget]
                 .forEach((widget) => {
                   widget.setup(this.state, this.events)
-                  this.appendChild(widget)
+                  this.uiWidget.appendChild(widget)
                 })
+
+              this.render();
 
               Repl.logger.success("repl loaded")
             }
@@ -300,8 +364,10 @@
             }
 
             switchFile = (href) => {
-              console.log("Switching to file:", href)
               this.state.currentFile = this.state.files.find(file => file.href === href)
+              const url = new URL(location.href)
+              url.searchParams.set("file", href)
+              history.pushState(null, null, url.toString())
               this.loadModule()
                 .then(this.runCodeInEditor)
             }
@@ -316,7 +382,9 @@
               let content = localStorage.getItem(this.state.currentFile.href)
 
               if(!content) {
-                content = await fetch(new URL(location.href + this.state.currentFile.href + `?t=${Date.now()}`))
+                const url = new URL(this.state.currentFile.href, location.origin)
+                url.searchParams.set("t", Date.now())
+                content = await fetch(url)
                   .then(response => response.text())
                   .catch(error => {
                     Repl.logger.error(`Failed to load module: ${error.message}`);
@@ -360,20 +428,53 @@
 
             toggleEditor = () => {
               let current = this.state.editorMode;
-              this.state.editorMode = current === "fullscreen" ? "hidden" : "fullscreen"
-              this.events.notify(stateUpdatedEvent)
+              this.state.editorMode = current === "hidden" ? "fullscreen" : "hidden";
+              const url = new URL(location.href);
+              url.searchParams.set("editorMode", this.state.editorMode);
+              history.pushState(null, null, url.href);
+              this.events.notify(stateUpdatedEvent);
+              this.render();
+            }
+
+            toggleSplitView = () => {
+              let current = this.state.editorMode;
+              if (current === "split") {
+                this.state.editorMode = "fullscreen";
+              } else {
+                this.state.editorMode = "split";
+              }
+              const url = new URL(location.href);
+              url.searchParams.set("editorMode", this.state.editorMode);
+              history.pushState(null, null, url.href);
+              this.events.notify(stateUpdatedEvent);
+              this.render();
+            }
+
+            render = () => {
+              if(this.state.editorMode === "split") {
+                this.uiWidget.setAttribute("slot", "start")
+                this.playgroundWidget.setAttribute("slot", "end")
+                this.splitterWidget = document.createElement("quiet-splitter")
+                this.splitterWidget.appendChild(this.uiWidget)
+                this.splitterWidget.appendChild(this.playgroundWidget)
+                this.appendChild(this.splitterWidget)
+              } else {
+                this.appendChild(this.uiWidget)
+                this.appendChild(this.playgroundWidget)
+                this.splitterWidget.remove()
+              }
             }
           }
+
         </script>
     </head>
-    <body class="relative">
-        <repl-playground></repl-playground>
-        <repl-ui
+    <body>
+        <js-repl
             files='[
                 { "name": "cube.js", "href": "/repl/cube.js" },
                 { "name": "shader.js", "href": "/repl/shader.js" },
                 { "name": "basic", "href": "/repl/basic.js" }
             ]'
-        ></repl-ui>
+        ></js-repl>
     </body>
 </html>

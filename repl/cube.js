@@ -7,7 +7,7 @@ scene.background = new THREE.Color(0x1a1a2e);
 // Create camera
 const camera = new THREE.PerspectiveCamera(
   75,
-  window.innerWidth / window.innerHeight,
+  playground.clientWidth / playground.clientHeight,
   0.1,
   1000,
 );
@@ -15,7 +15,7 @@ camera.position.z = 5;
 
 // Create renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(playground.clientWidth, playground.clientHeight);
 playground.appendChild(renderer.domElement);
 
 // Create cube
@@ -36,10 +36,10 @@ directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
 // Handle window resize
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+playground.addEventListener("resize", () => {
+  camera.aspect = playground.clientWidth / playground.clientHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(playground.clientWidth, playground.clientHeight);
 });
 
 // Animation loop

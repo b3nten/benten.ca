@@ -5,7 +5,6 @@ import { AppRoot } from "./app";
 import { MapControls } from "three/examples/jsm/Addons.js";
 import {
 	ActiveCameraComponent,
-	InfiniteGridHelper,
 	RendererComponent,
 	SceneComponent,
 	ThreeObjectSystem,
@@ -13,16 +12,12 @@ import {
 	Transform,
 	Viewport,
 } from "@100x/engine/three";
-import {
-	ActorComponent,
-	ActorSystem,
-	System,
-} from "@100x/engine/ecs";
+import { ActorSystem, System } from "@100x/engine/ecs";
 import { Frameloop } from "@100x/engine/lib";
 import { WebComponent } from "./component";
 import { globalAssets } from "./assets";
 
-await globalAssets.load()
+await globalAssets.load();
 
 export class WebGlScene extends WebComponent("webgl-scene") {
 	static styles = css`
@@ -52,7 +47,11 @@ export class WebGlScene extends WebComponent("webgl-scene") {
 		world.createEntityWith(
 			Viewport.fullScreenCanvas(this.canvas),
 			new RendererComponent(new Three.WebGLRenderer({ canvas: this.canvas })),
-			new SceneComponent(new Three.Scene().also(it => { it.fog = new Three.Fog("black", 10, 30) })),
+			new SceneComponent(
+				new Three.Scene().also((it) => {
+					it.fog = new Three.Fog("black", 10, 30);
+				}),
+			),
 			new Three.AmbientLight(0xffffff, 1),
 			new Transform(),
 		);
@@ -61,14 +60,19 @@ export class WebGlScene extends WebComponent("webgl-scene") {
 			new Transform()
 				.setPosition(5, 7, 11)
 				.setRotation(-0.25, 0.16, 0.04, 0.95),
-			new Three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
+			new Three.PerspectiveCamera(
+				75,
+				window.innerWidth / window.innerHeight,
+				0.1,
+				1000,
+			),
 			new ActiveCameraComponent(),
 		);
 
 		world.createEntityWith(
 			new Transform(),
-			globalAssets.unwrap("scene").clone()
-		)
+			globalAssets.unwrap("scene").clone(),
+		);
 
 		return world;
 	}

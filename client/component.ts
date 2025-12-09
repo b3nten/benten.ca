@@ -1,9 +1,9 @@
 import { LitElement } from "lit";
 
-/** @type {CSSStyleSheet[] | null} */
-let globalSheets = null;
+let globalSheets: CSSStyleSheet[] | null = null;
 
-function getGlobalStyleSheets() {
+function getGlobalStyleSheets()
+{
 	if (globalSheets === null) {
 		globalSheets = Array.from(document.styleSheets).map((x) => {
 			const sheet = new CSSStyleSheet();
@@ -20,13 +20,12 @@ function getGlobalStyleSheets() {
 /**
  * @param {string} tag Optional tag to override the default tag name
  */
-export function WebComponent(tag) {
-	class ComponentImpl extends LitElement {
-
-		/**
-		 * @param {string | void} maybeTag
-		 */
-		static define(maybeTag) {
+export function WebComponent(tag: string)
+{
+	class ComponentImpl extends LitElement
+	{
+		static define(maybeTag?: string)
+		{
 			queueMicrotask(() => {
 				if(!customElements.get(tag)) {
 					customElements.define(maybeTag ?? tag, this);
@@ -34,9 +33,11 @@ export function WebComponent(tag) {
 			});
 		}
 
-		constructor() {
+		constructor()
+		{
 			super();
-			if (this.shadowRoot) {
+			if (this.shadowRoot)
+			{
 				this.shadowRoot.adoptedStyleSheets.push(...getGlobalStyleSheets());
 			}
 		}
@@ -47,24 +48,29 @@ export function WebComponent(tag) {
 		onUpdated() {}
 		onUnmount() {}
 
-		connectedCallback() {
+		connectedCallback()
+		{
 			super.connectedCallback();
 			this.onMount();
 		}
 
-		firstUpdated() {
+		firstUpdated()
+		{
 			this.onMounted()
 		}
 
-		willUpdate() {
+		willUpdate()
+		{
 			this.onUpdate()
 		}
 
-		updated() {
+		updated()
+		{
 			this.onUpdated()
 		}
 
-		disconnectedCallback() {
+		disconnectedCallback()
+		{
 			super.disconnectedCallback();
 			this.onUnmount();
 		}

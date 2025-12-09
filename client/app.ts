@@ -1,8 +1,10 @@
-import { World } from "@100x/engine/ecs";
+import { World } from "elysiatech/ecs";
 import "./assets/styles.css";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+
 import { WebComponent } from "./component";
 import { html } from "lit";
-import { assert } from "@100x/engine/asserts";
+import { assert } from "elysiatech/lib";
 
 export class AppRoot extends WebComponent("app-root") {
 	static get instance() {

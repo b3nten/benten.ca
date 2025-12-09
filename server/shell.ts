@@ -1,8 +1,7 @@
 import manifest from "virtual:vite-manifest";
 const html = String.raw
 
-/** @param {Record<string, any>} props */
-export const createShell = (props) => html`
+export const createShell = (props: Record<string, string>) => html`
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>

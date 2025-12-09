@@ -1,0 +1,74 @@
+import { createPrefab, remapRange, System, Transform, type Component } from "elysiatech";
+import { ColliderComponent, RigidBodyComponent } from "./physics";
+import { MathUtils, Vector3 } from "three";
+import { globalAssets } from "../assets";
+
+export class BallMovementComponent implements Component {
+	scale: number;
+	constructor(scale: number = 1) {
+		this.scale = scale;
+	}
+}
+
+export class BallMovementSystem extends System {
+	update(delta: number) {
+		for (const [, rbody, transform, bmvsys] of this.world.componentIterator(RigidBodyComponent, Transform, BallMovementComponent)) {
+			const rb = rbody.impl;
+			if (!rb) continue;
+
+			this._vec.copy(transform.position);
+			this._vec.normalize();
+			this._vec.set(
+				-50 * delta * bmvsys.scale * this._vec.x,
+				-300 * delta * bmvsys.scale * this._vec.y,
+				-50 * delta * bmvsys.scale * this._vec.z,
+			);
+
+			rb.applyImpulse(this._vec, true);
+		}
+	}
+
+	_vec = new Vector3();
+}
+
+const scaleFactor = remapRange(window.innerWidth, 400, 1400, 0.8, 1.2);
+
+export const balls = [...Array(100)].map(() => ({
+	scale: [0.75, 0.75, 1, 1, 1.25][Math.floor(Math.random() * 5)] * scaleFactor,
+}));
+
+let r = MathUtils.randFloatSpread;
+
+export function createBallPrefabFactory() {
+	const monitor = globalAssets.unwrap("monitor").clone().children[0];
+	const monitorCollider = rapier.ColliderDesc
+		.convexHull(monitor.children[0].geometry.attributes.position.array as Float32Array)
+		.setMass(6)
+		.setFriction(0.5);
+
+	const terminal = globalAssets.unwrap("terminal").clone().children[0];
+	const terminalCollider = rapier.ColliderDesc
+		.convexHull(terminal.geometry.attributes.position.array as Float32Array)
+		.setMass(6)
+		.setFriction(0.5);
+
+	return (args: { scale: number }) =>
+		createPrefab((world) => {
+			let rand = Math.random();
+			const mesh = rand > 0.5 ? monitor : terminal;
+			const collider = rand > 0.5 ? monitorCollider : terminalCollider;
+			return world.createEntityWith(
+				mesh.clone(),
+				new Transform().setPosition(r(20), r(20) + 25, r(20) - 10),
+				new RigidBodyComponent(
+					rapier
+						.RigidBodyDesc.dynamic()
+						.setLinearDamping(2)
+						.setAngularDamping(1.5)
+						.setCcdEnabled(true),
+				),
+				new ColliderComponent(collider),
+				new BallMovementComponent(args.scale),
+			);
+		});
+}

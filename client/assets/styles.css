@@ -3,5 +3,5 @@
 body, html {
 	overscroll-behavior: none;
 	overflow: hidden;
-	background-color: black;
+	background-color: red;
 }

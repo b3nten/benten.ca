@@ -1,14 +1,14 @@
-import { assert } from "@100x/engine/asserts";
-import { isFunction } from "@100x/engine/checks";
 import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
+import { assert, isFunction } from "elysiatech/lib";
 import { readFileSync, rmSync } from "node:fs";
 import { defineConfig, isRunnableDevEnvironment } from "vite";
+import wasm from "vite-plugin-wasm";
 
 const CLIENT_ENTRY = "client/main.js";
 const SERVER_ENTRY = "server/main.js";
 
 export default defineConfig({
-	plugins: [manifest(), devServer()],
+	plugins: [manifest(), devServer(), wasm()],
 	appType: "custom",
 	server: {
 		port: 8000,
@@ -76,30 +76,20 @@ function devServer() {
 			const ssrGraph = server.environments.ssr?.moduleGraph;
 			const ssrModule = ssrGraph?.getModuleById(file);
 			if (ssrModule) {
-				ctx.server.ws.send({
-					type: "full-reload",
-				});
+				ctx.server.ws.send({ type: "full-reload" });
 			}
 		},
 		configureServer: (server) => {
 			const env = server.environments["ssr"];
 			assert(env, "Server environment not found");
-			assert(
-				isRunnableDevEnvironment(env),
-				"Server environment is not runnable",
-			);
+			assert(isRunnableDevEnvironment(env), "Server environment is not runnable");
 			const runner = env.runner;
 			return () => {
 				server.middlewares.use(async (nodeRequest, nodeResponse, next) => {
 					try {
 						const mod = await runner.import(SERVER_ENTRY);
-						const handler = isFunction(mod.default.fetch)
-							? mod.default.fetch
-							: mod.default;
-						sendResponse(
-							nodeResponse,
-							await handler(createRequest(nodeRequest, nodeResponse)),
-						);
+						const handler = isFunction(mod.default.fetch) ? mod.default.fetch : mod.default;
+						sendResponse(nodeResponse, await handler(createRequest(nodeRequest, nodeResponse)));
 					} catch (e) {
 						next(e);
 					}
@@ -125,14 +115,9 @@ function manifest() {
 				if (m) return m;
 				try {
 					/** @type {import("vite").Manifest} */
-					const rawManifest = JSON.parse(
-						readFileSync("./dist/public/.vite/manifest.json", "utf-8"),
-					);
+					const rawManifest = JSON.parse(readFileSync("./dist/public/.vite/manifest.json", "utf-8"));
 					for (const key in rawManifest) {
-						if (
-							rawManifest[key].file &&
-							!rawManifest[key].file.startsWith("/")
-						) {
+						if (rawManifest[key].file && !rawManifest[key].file.startsWith("/")) {
 							rawManifest[key].file = "/" + rawManifest[key].file;
 							if (Array.isArray(rawManifest[key].css)) {
 								rawManifest[key].css = rawManifest[key].css.map((css) =>
@@ -145,15 +130,7 @@ function manifest() {
 					rmSync("./dist/public/.vite", { recursive: true });
 					return m;
 				} catch {
-					return (
-						"export default " +
-						JSON.stringify({
-							[CLIENT_ENTRY]: {
-								file: "/" + CLIENT_ENTRY,
-								css: [],
-							},
-						})
-					);
+					return "export default " + JSON.stringify({ [CLIENT_ENTRY]: { file: "/" + CLIENT_ENTRY, css: [] }});
 				}
 			} else {
 				return null;

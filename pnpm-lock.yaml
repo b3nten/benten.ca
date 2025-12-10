@@ -21,8 +21,8 @@ importers:
         specifier: ^0.181.0
         version: 0.181.0
       elysiatech:
-        specifier: ^2.0.0-beta.49
-        version: 2.0.0-beta.49(three@0.181.2)
+        specifier: ^2.0.0-beta.51
+        version: 2.0.0-beta.51(three@0.181.2)
       itty-router:
         specifier: ^5.0.22
         version: 5.0.22
@@ -398,8 +398,8 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  elysiatech@2.0.0-beta.49:
-    resolution: {integrity: sha512-457+oOOxfohoEpxVt7+nVVkWFZQuoa4iqNXrVUqhb63uXjfGcOE54xbUbyJ7XF4hhWBlbxC+hlGAbshqKBo9aw==}
+  elysiatech@2.0.0-beta.51:
+    resolution: {integrity: sha512-EaXuzbGVAWf31+fV5uaipooz7QscIoIg5utUaSSvtmNR3gO/8Jr+fYNM2yCJ/uJvZu6TjZm3k1ufK6p2hGR7hw==}
     peerDependencies:
       jolt-physics: ^0.31.0
       three: ^0.181.0
@@ -785,9 +785,10 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  elysiatech@2.0.0-beta.49(three@0.181.2):
+  elysiatech@2.0.0-beta.51(three@0.181.2):
     dependencies:
       bvh.js: 0.0.13
+      lit: 3.3.1
       supports-color: 5.5.0
     optionalDependencies:
       three: 0.181.2

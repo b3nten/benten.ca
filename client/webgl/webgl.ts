@@ -6,12 +6,20 @@ import { loadRapier } from "./physics";
 import { globalAssets } from "../assets";
 import { HidefRenderPipeline } from "./renderer";
 
-
 export class WebGlScene extends WebComponent("webgl-scene")
 {
 	static styles = css`
-		canvas {
+		:host {
 			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 0;
+		}
+		canvas {
+			position: absolute;
 			width: 100%;
 			height: 100%;
 			z-index: 0;

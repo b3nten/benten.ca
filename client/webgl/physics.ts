@@ -136,19 +136,20 @@ export class PhysicsSystem extends System
         entity,
         ColliderComponent,
       );
-      if (colliderComponent) {
-        if (colliderComponent.impl !== null) {
+      if (colliderComponent)
+      {
+        if (colliderComponent.impl !== null)
+        {
           this.physicsWorld.removeCollider(colliderComponent.impl!, false);
         }
         this.createPhysicsObject(this.world, entity, colliderComponent);
       }
       this.updateRigidBodyPosition(transform, r);
-    } else if (c instanceof ColliderComponent) {
+    }
+    else if (c instanceof ColliderComponent)
+    {
       const rbody = this.world.getComponent(entity, RigidBodyComponent);
-      const collider = this.physicsWorld.createCollider(
-        c.config,
-        rbody?.impl ?? undefined,
-      );
+      const collider = this.physicsWorld.createCollider(c.config, rbody?.impl ?? undefined);
       c._handle = collider.handle;
       c._world = this.physicsWorld;
     }

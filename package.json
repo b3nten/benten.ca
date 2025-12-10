@@ -9,7 +9,7 @@
 		"@dimforge/rapier3d": "^0.19.3",
 		"@remix-run/node-fetch-server": "^0.12.0",
 		"@types/three": "^0.181.0",
-		"elysiatech": "^2.0.0-beta.49",
+		"elysiatech": "^2.0.0-beta.51",
 		"itty-router": "^5.0.22",
 		"lit": "^3.3.1",
 		"n8ao": "^1.10.1",

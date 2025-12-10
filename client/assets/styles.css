@@ -2,6 +2,7 @@
 
 body, html {
 	overscroll-behavior: none;
-	overflow: hidden;
-	background-color: red;
+	background-color: black;
+	color: whitesmoke;
+	font-size: 1.125rem;
 }

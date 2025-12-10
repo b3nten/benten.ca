@@ -3,16 +3,16 @@ import { ColliderComponent, RigidBodyComponent } from "./physics";
 import { MathUtils, Vector3 } from "three";
 import { globalAssets } from "../assets";
 
-export class BallMovementComponent implements Component {
+export class ComputerMovementComponent implements Component {
 	scale: number;
 	constructor(scale: number = 1) {
 		this.scale = scale;
 	}
 }
 
-export class BallMovementSystem extends System {
+export class ComputerMovementSystem extends System {
 	update(delta: number) {
-		for (const [, rbody, transform, bmvsys] of this.world.componentIterator(RigidBodyComponent, Transform, BallMovementComponent)) {
+		for (const [, rbody, transform, bmvsys] of this.world.componentIterator(RigidBodyComponent, Transform, ComputerMovementComponent)) {
 			const rb = rbody.impl;
 			if (!rb) continue;
 
@@ -39,7 +39,7 @@ export const balls = [...Array(100)].map(() => ({
 
 let r = MathUtils.randFloatSpread;
 
-export function createBallPrefabFactory() {
+export function createComputerPrefabFactory() {
 	const monitor = globalAssets.unwrap("monitor").clone().children[0];
 	const monitorCollider = rapier.ColliderDesc
 		.convexHull(monitor.children[0].geometry.attributes.position.array as Float32Array)
@@ -68,7 +68,7 @@ export function createBallPrefabFactory() {
 						.setCcdEnabled(true),
 				),
 				new ColliderComponent(collider),
-				new BallMovementComponent(args.scale),
+				new ComputerMovementComponent(args.scale),
 			);
 		});
 }

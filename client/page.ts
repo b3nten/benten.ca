@@ -26,9 +26,9 @@ export class Page extends WebComponent("page-outlet")
 				Ever since I started working with WebGL and shaders, I was fascinated by the idea of reproducing beautiful light effects such as refraction, dispersion, and caustics. Balancing the physical aspect of these effects and aesthetics for a pleasing output was the most challenging part of this exploratory work.
 			</project-summary>
 			<image-grid style="--columns: 8">
-				<grid-image span=3 src="https://picsum.photos/200/305.jpg"></grid-image>
-				<grid-image span="5" src="https://picsum.photos/200/305.jpg"></grid-image>
-				<grid-image span="5" src="https://picsum.photos/200/305.jpg"></grid-image>
+				<grid-image span=3 src="https://picsum.photos/1200/800.jpg"></grid-image>
+				<grid-image span="5" src="https://picsum.photos/1200/801.jpg"></grid-image>
+				<grid-image span="5" src="https://picsum.photos/1200/900.jpg"></grid-image>
 			</image-grid>
 			<!-- <inspiration-block></inspiration-block> -->
 			<contact-section></contact-section>
@@ -58,14 +58,38 @@ export class AboutMe extends WebComponent("about-me")
 			position: relative;
 			margin: auto;
 			max-width: 769px;
+			height: 200vh;
+		}
+
+		.sticky {
+			position: sticky;
+			top: 10rem;
+			padding-bottom: 4rem;
 		}
 
 		img {
 			max-width: 200px;
+			filter: grayscale(1) invert(1) brightness(1.2);
+			margin-block: 1.75rem;
+		}
+
+		p {
+			font-size: 1.25rem;
+			opacity: .75;
+
+			&.bold {
+				opacity: 9;
+				font-weight: 600;
+			}
+
+			&.footer {
+				font-size: .9rem;
+			}
 		}
 	`
 	render = () => html`
-		<p>
+		<div class="sticky">
+		<p class="bold">
 			Hi! I'm Benton, a fullstack engineer based in Canada. Welcome to my corner of the Internet, where I showcase my work, craft, unfinished or imperfect projects, and the many other things I'm exploring.
 		</p>
 		<p>
@@ -78,7 +102,11 @@ export class AboutMe extends WebComponent("about-me")
 			When not building, I like sharing what I learned on my blog, through interactive experiences and playgrounds. You can also find me running in the streets of NYC or just walking around enjoying a nice cup of coffee.
 		</p>
 		<img src="/sig.png">
-		<p><span>Victoria, CA</span><span>Oct 2025</span></p>
+		<p class="footer">
+			<span>Victoria, CA</span> <br>
+			<span>Oct 2025</span>
+		</p>
+		</div>
 	`
 }
 AboutMe.define()
@@ -108,8 +136,8 @@ export class WorkCompilation extends WebComponent("work-compilation")
 
 		.img1, .img2, .img3 {
 			position: relative;
-			border-radius: 8px;
-			border: 1px solid oklch(0.2484 0.018 262.040009);
+			box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+			width: 200px;
 	  }
 
 		.img1 {
@@ -180,6 +208,13 @@ export class ProjectSummary extends WebComponent("project-summary")
 			font-size: 2.25rem;
 			font-weight: 400;
 			margin-bottom: 0.5rem;
+			text-align: center;
+		}
+
+		p {
+			font-size: 1.25rem;
+			opacity: .75;
+			margin-bottom: 3rem;
 		}
 	`
 
@@ -222,7 +257,6 @@ export class GridImage extends WebComponent("grid-image")
 	}
 	static styles = css`
 		img {
-			border-radius: 8px;
 			border: 1px solid oklch(0.2484 0.018 262.040009);
 			width: 100%;
 			height: 500px;
@@ -254,6 +288,15 @@ export class Contact extends WebComponent("contact-section")
 			position: relative;
 			margin: auto;
 			max-width: 1200px;
+		}
+		h2 {
+			opacity: .9;
+			font-size: 2.5rem;
+			margin-bottom: 1rem;
+		}
+		p {
+			font-size: 1.35rem;
+			opacity: .75;
 		}
 	`
 	render = () => html`

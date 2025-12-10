@@ -23,6 +23,7 @@ export class AppRoot extends WebComponent("app-root")
 	render()
 	{
 		return html`
+			<nav-bar></nav-bar>
 			<webgl-scene></webgl-scene>
 			<intro-loader></intro-loader>
 			<footer-section></footer-section>

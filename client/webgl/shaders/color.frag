@@ -50,11 +50,10 @@ void acesFilmic(inout vec4 outputColor) {
 void main()
 {
     vec4 background = texture2D(u_BackgroundMap, vUv);
-
     vec4 foreground = texture2D(u_Map0, vUv);
     chromaticAberation(foreground, vUv, foreground);
 
-    vec3 color = foreground.rgb * foreground.a + background.rgb * (1.0 - foreground.a);
+    vec3 color = mix(background.rgb, foreground.rgb, foreground.a);
     gl_FragColor = vec4(color, 1.);
 
 		vignette(gl_FragColor, vUv, gl_FragColor);

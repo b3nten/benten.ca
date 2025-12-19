@@ -6,6 +6,8 @@ export const bgShader = new ShaderMaterial({
 	uniforms: {
 		u_Resolution: { value: null },
 		u_MousePos: { value: null },
+		u_MouseVelocity: { value: null },
+		u_Time: { value: null },
 	},
 	fragmentShader,
 	vertexShader,

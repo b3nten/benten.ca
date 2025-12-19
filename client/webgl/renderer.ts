@@ -2,6 +2,8 @@ import { Input, type IRenderPipeline, remapRange, type Viewport, World } from "e
 import * as Three from "three"
 import { colorShader } from "./shaders/color";
 import { bgShader } from "./shaders/bg";
+import { fullscreenQuad } from "./renderer_util";
+import { PixelPass } from "./shaders/pixelation";
 
 const renderTargetOptions = {
   depthBuffer: false,
@@ -30,6 +32,10 @@ export class CustomRenderPipeline implements IRenderPipeline {
 	bgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
 
 	fgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
+
+	fg2Target = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
+
+	pixelPass = new PixelPass
 
 	createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer
 	{
@@ -80,16 +86,11 @@ export class CustomRenderPipeline implements IRenderPipeline {
 		// background
 		{
 			bgShader.uniforms["u_Resolution"].value = new Three.Vector2(viewport.width, viewport.height);
+			bgShader.uniforms["u_MouseVelocity"].value = new Three.Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
 			bgShader.uniforms["u_MousePos"].value = new Three.Vector2(Input.mouseX, Input.mouseY)
+			bgShader.uniforms["u_Time"].value = performance.now() * 0.001;
 			renderer.setRenderTarget(this.bgTarget)
 			fullscreenQuad.render(renderer, bgShader)
-		}
-
-		// // foreground elements
-		{
-			renderer.setRenderTarget(this.fgTarget)
-			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
-			renderer.render(scene, camera);
 		}
 
 		// fg normal pass
@@ -101,17 +102,21 @@ export class CustomRenderPipeline implements IRenderPipeline {
 			scene.overrideMaterial = null;
 		}
 
-		// fg pixel pass
+		// foreground elements
 		{
-			scene.overrideMaterial = meshNormalMaterial;
-			renderer.setRenderTarget(this.normalTarget)
+			renderer.setRenderTarget(this.fg2Target)
 			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
 			renderer.render(scene, camera);
-			scene.overrideMaterial = null;
+		}
+
+		// fg pixel pass
+		{
+			renderer.setRenderTarget(this.fgTarget)
+			this.pixelPass.resize(viewport.width, viewport.height);
+			this.pixelPass.render(renderer, this.fg2Target, this.depthTarget, depthRenderBuffer, this.normalTarget, this.fgTarget);
 		}
 
 		renderer.setRenderTarget(null);
-		_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, null);
 		fullscreenQuad.render(renderer, colorShader)
 	}
 
@@ -119,7 +124,7 @@ export class CustomRenderPipeline implements IRenderPipeline {
 	{
 		const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight, 0, 1);
 		const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
-		// colorShader.uniforms["u_PixelGranularity"].value = remapRange(scrollAmount, 0, 1, 1, 20)
+		this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 2, 10)
 		colorShader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
 	}
 
@@ -129,6 +134,7 @@ export class CustomRenderPipeline implements IRenderPipeline {
 		this.fgTarget.setSize(width, height);
 		this.depthTarget.setSize(width, height);
 		this.normalTarget.setSize(width, height);
+		this.fg2Target.setSize(width, height);
 		renderer.setRenderTarget(this.bgTarget)
 		renderer.clear();
 		renderer.setRenderTarget(this.fgTarget)
@@ -137,37 +143,13 @@ export class CustomRenderPipeline implements IRenderPipeline {
 		renderer.clear();
 		renderer.setRenderTarget(this.depthTarget)
 		renderer.clear();
+		renderer.setRenderTarget(this.fg2Target)
+		renderer.clear();
 		renderer.setRenderTarget(null)
 	}
 }
 
-class FullscreenTriangleGeometry extends Three.BufferGeometry
-{
-	constructor()
-  {
-		super();
-		this.setAttribute( 'position', new Three.Float32BufferAttribute( [ - 1, 3, 0, - 1, - 1, 0, 3, - 1, 0 ], 3 ) );
-		this.setAttribute( 'uv', new Three.Float32BufferAttribute( [ 0, 2, 0, 0, 2, 0 ], 2 ) );
-	}
-}
 
-class FullScreenQuad extends Three.Mesh
-{
-	constructor()
-	{
-		super(new FullscreenTriangleGeometry(), new Three.ShaderMaterial)
-	}
-
-	render(renderer: Three.WebGLRenderer, material: Three.Material)
-	{
-		this.material = material;
-		renderer.render(this, this.#camera);
-	}
-
-	#camera = new Three.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
-}
-
-const fullscreenQuad = new FullScreenQuad();
 
 const depthMaterial = new Three.MeshDepthMaterial({
 	depthPacking: Three.BasicDepthPacking

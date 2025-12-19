@@ -56,7 +56,7 @@ void main() {
   vec3 normal = vec3(0.0);
 
   if (u_DepthEdgeStrength > 0.0 || u_NormalEdgeStrength > 0.0) {
-    depth = geu_DepthMap(0, 0);
+    depth = getDepth(0, 0);
     normal = getNormal(0, 0);
   }
 

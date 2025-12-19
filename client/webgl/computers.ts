@@ -6,7 +6,7 @@ import * as Three from "three"
 
 export class ComputerMovementComponent implements Component {
 	scale: number;
-	constructor(scale: number = 1) {
+	constructor(scale: number = 20) {
 		this.scale = scale;
 	}
 }
@@ -53,7 +53,7 @@ export class ComputerMovementSystem extends System
 		}
 	}
 
-	_vec = new Vector3();
+	_vec = new Vector3(0);
 }
 
 const scaleFactor = remapRange(window.innerWidth, 400, 1400, 0.8, 1.2);

@@ -1,117 +1,177 @@
-import { clamp, remapRange, World, type IRenderPipeline, type Viewport } from "elysiatech";
+import { Input, type IRenderPipeline, remapRange, type Viewport, World } from "elysiatech";
 import * as Three from "three"
-import * as Postprocessing from "postprocessing"
-// @ts-expect-error missing types
-import { N8AOPostPass } from "n8ao";
-import { ColliderComponent } from "./physics";
+import { colorShader } from "./shaders/color";
+import { bgShader } from "./shaders/bg";
 
-export class HidefRenderPipeline implements IRenderPipeline
-{
+const renderTargetOptions = {
+  depthBuffer: false,
+  stencilBuffer: false,
+  format: Three.RGBAFormat,
+  type: Three.UnsignedByteType,
+}
+
+export class CustomRenderPipeline implements IRenderPipeline {
 	world?: World;
-	composer?: Postprocessing.EffectComposer
 
-	vignetteEffect = new Postprocessing.VignetteEffect({
-		darkness: .7,
-		offset: .2,
+	depthTarget = new Three.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+   depthBuffer: true,
+   stencilBuffer: false,
+   format: Three.RGBAFormat,
+	 type: Three.UnsignedByteType,
+ 	});
+
+	normalTarget = new Three.WebGLRenderTarget(1, 1, {
+		...renderTargetOptions,
+		minFilter: Three.NearestFilter,
+		magFilter: Three.NearestFilter,
+		type: Three.HalfFloatType
 	});
 
-	brightnessContrast = new Postprocessing.BrightnessContrastEffect({
-    brightness: 0.05,
-    contrast: 0.15,
-  })
+	bgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
 
-	pixelEffect = new Postprocessing.PixelationEffect(1)
+	fgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
 
-	configure(renderer: Three.WebGLRenderer, world: World): void
+	createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer
 	{
-		this.world = world;
+		return new Three.WebGLRenderer({
+			canvas,
+			antialias: false,
+			powerPreference: "high-performance",
+			precision: "highp",
+			alpha: true,
+			depth: false,
+			stencil: false,
+		})
+	}
+
+	configure = (renderer: Three.WebGLRenderer): void =>
+	{
+		window.addEventListener("scroll", this._onScroll.bind(this))
+
 		renderer.setPixelRatio(1)
 		renderer.info.autoReset = false;
 		renderer.toneMapping = Three.NoToneMapping;
+		renderer.autoClear = false;
+		renderer.autoClearDepth = false;
 
-		this.composer = new Postprocessing.EffectComposer(renderer, {
-			frameBufferType: Three.HalfFloatType,
-			alpha: true,
-		});
-
-		const n8aopass = new N8AOPostPass(
-			new Three.Scene(),
-			new Three.PerspectiveCamera(),
-			window.innerWidth,
-			window.innerHeight,
-		);
-		n8aopass.configuration.aoRadius = 3.0;
-		n8aopass.configuration.distanceFalloff = 1.0;
-		n8aopass.configuration.intensity = 2.0;
-		n8aopass.configuration.color = new Three.Color(0, 0, 0);
-
-		const bloomEffect = new Postprocessing.BloomEffect({
-			intensity: 1.0,
-			luminanceThreshold: 0.3,
-			luminanceSmoothing: 0.075,
-		});
-
-		// Passes
-
-		this.composer.addPass(new Postprocessing.RenderPass());
-
-		this.composer.addPass(n8aopass);
-
-		this.composer.addPass(
-			new Postprocessing.EffectPass(
-				undefined,
-				new Postprocessing.ChromaticAberrationEffect(),
-			)
-		)
-
-		this.composer.addPass(
-			new Postprocessing.EffectPass(
-				undefined,
-				this.pixelEffect,
-			)
-		)
-
-		this.composer.addPass(
-      new Postprocessing.EffectPass(
-        undefined,
-        bloomEffect,
-        this.vignetteEffect,
-        new Postprocessing.ToneMappingEffect({
-          mode: Postprocessing.ToneMappingMode.ACES_FILMIC,
-        }),
-        this.brightnessContrast,
-        new Postprocessing.SMAAEffect({
-          preset: Postprocessing.SMAAPreset.MEDIUM,
-        }),
-      ),
-    );
-
-		window.addEventListener("scroll", this.onScroll)
+		colorShader.uniforms["u_BackgroundMap"].value = this.bgTarget.texture
+		colorShader.uniforms["u_Map0"].value = this.fgTarget.texture
 	}
 
-	render(delta: number, scene: Three.Scene, camera: Three.Camera, _: Three.WebGLRenderer, viewport: Viewport): void
+	render = (_: number, scene: Three.Scene, camera: Three.Camera, renderer: Three.WebGLRenderer, viewport: Viewport): void =>
 	{
-		this.composer!.setSize(viewport.width, viewport.height);
-    this.composer!.setMainCamera(camera);
-    this.composer!.setMainScene(scene);
-    this.composer!.render(delta);
+		this._prepareTargets(renderer, viewport.width, viewport.height)
+		camera.layers.set(0)
+		const _gl = renderer.getContext();
+
+		// depth
+		{
+			// renderer.setRenderTarget(null)
+			renderer.setRenderTarget(this.depthTarget)
+			scene.overrideMaterial = depthMaterial;
+			renderer.render(scene, camera);
+			scene.overrideMaterial = null;
+			// return;
+		}
+
+		let renderBufferProps = renderer.properties.get(this.depthTarget) as any;
+		let depthRenderBuffer: WebGLRenderbuffer = renderBufferProps.__webglDepthRenderbuffer || renderBufferProps.__webglDepthbuffer;
+
+		// background
+		{
+			bgShader.uniforms["u_Resolution"].value = new Three.Vector2(viewport.width, viewport.height);
+			bgShader.uniforms["u_MousePos"].value = new Three.Vector2(Input.mouseX, Input.mouseY)
+			renderer.setRenderTarget(this.bgTarget)
+			fullscreenQuad.render(renderer, bgShader)
+		}
+
+		// // foreground elements
+		{
+			renderer.setRenderTarget(this.fgTarget)
+			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
+			renderer.render(scene, camera);
+		}
+
+		// fg normal pass
+		{
+			scene.overrideMaterial = meshNormalMaterial;
+			renderer.setRenderTarget(this.normalTarget)
+			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
+			renderer.render(scene, camera);
+			scene.overrideMaterial = null;
+		}
+
+		// fg pixel pass
+		{
+			scene.overrideMaterial = meshNormalMaterial;
+			renderer.setRenderTarget(this.normalTarget)
+			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
+			renderer.render(scene, camera);
+			scene.overrideMaterial = null;
+		}
+
+		renderer.setRenderTarget(null);
+		_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, null);
+		fullscreenQuad.render(renderer, colorShader)
 	}
 
-	constructor()
+	_onScroll()
 	{
-		this.configure = this.configure.bind(this);
-		this.render = this.render.bind(this);
-	}
-
-	onScroll = () => {
 		const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight, 0, 1);
 		const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
+		// colorShader.uniforms["u_PixelGranularity"].value = remapRange(scrollAmount, 0, 1, 1, 20)
+		colorShader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
+	}
 
-		this.pixelEffect.granularity = remapRange(scrollAmount, 0, 1, 1, 20)
-		this.brightnessContrast.brightness = remapRange(doubledScrollAmount, 1, 0, -2, .065)
-
-		const ballCollider = this.world!.getComponent(globalThis.RESIZE_BALL_ENTITY, ColliderComponent)?.impl?.setRadius(
-			remapRange(doubledScrollAmount, 0, 1, 0.1, 20)
-		)
+	_prepareTargets(renderer: Three.WebGLRenderer, width: number, height: number)
+	{
+		this.bgTarget.setSize(width, height);
+		this.fgTarget.setSize(width, height);
+		this.depthTarget.setSize(width, height);
+		this.normalTarget.setSize(width, height);
+		renderer.setRenderTarget(this.bgTarget)
+		renderer.clear();
+		renderer.setRenderTarget(this.fgTarget)
+		renderer.clear();
+		renderer.setRenderTarget(this.normalTarget)
+		renderer.clear();
+		renderer.setRenderTarget(this.depthTarget)
+		renderer.clear();
+		renderer.setRenderTarget(null)
 	}
 }
+
+class FullscreenTriangleGeometry extends Three.BufferGeometry
+{
+	constructor()
+  {
+		super();
+		this.setAttribute( 'position', new Three.Float32BufferAttribute( [ - 1, 3, 0, - 1, - 1, 0, 3, - 1, 0 ], 3 ) );
+		this.setAttribute( 'uv', new Three.Float32BufferAttribute( [ 0, 2, 0, 0, 2, 0 ], 2 ) );
+	}
+}
+
+class FullScreenQuad extends Three.Mesh
+{
+	constructor()
+	{
+		super(new FullscreenTriangleGeometry(), new Three.ShaderMaterial)
+	}
+
+	render(renderer: Three.WebGLRenderer, material: Three.Material)
+	{
+		this.material = material;
+		renderer.render(this, this.#camera);
+	}
+
+	#camera = new Three.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
+}
+
+const fullscreenQuad = new FullScreenQuad();
+
+const depthMaterial = new Three.MeshDepthMaterial({
+	depthPacking: Three.BasicDepthPacking
+})
+
+const meshNormalMaterial = new Three.MeshNormalMaterial();
+meshNormalMaterial.blending = Three.NoBlending;

@@ -3,7 +3,7 @@ import { WebComponent } from "./component";
 
 export class Nav extends WebComponent("nav-bar")
 {
-	static styles = /*css*/css`
+	static styles = /*css*/ [super.styles, css`
 		:host {
 			display: block;
 			position: fixed;
@@ -11,8 +11,8 @@ export class Nav extends WebComponent("nav-bar")
 			left: 50%;
 			transform: translateX(-50%);
 			z-index: 10;
-			font-size: .9rem;
-			font-weight: 600;
+			font-size: 1.5rem;
+			font-weight: 300;
 			color: white;
 			flex-direction: row;
 			align-items: center;
@@ -23,12 +23,25 @@ export class Nav extends WebComponent("nav-bar")
 				flex-direction: row;
 				align-items: center;
 				justify-content: center;
-				padding: 0.2rem .5rem;
-				background-color: rgba(100, 100, 200, 0.3);
-				border-radius: 10px;
-				border: 1px solid rgba(255, 255, 255, 0.2);
-				backdrop-filter: blur(10px);
+				padding: 0.6rem 1rem;
+				background-color: #7240FF;
 				line-height: 1;
+			}
+			& .bg {
+				position: absolute;
+				inset: -3px;
+				background: linear-gradient(30deg, #AF82FF, #AF82FF);
+				z-index: -1;
+			}
+			& .bg-glow {
+				position: absolute;
+				top: 3px;
+				left: -2px;
+				right: -2px;
+				bottom: 3px;
+				background: linear-gradient(30deg, #AF82FF, #E282FF);
+				z-index: -2;
+				filter: blur(15px);
 			}
 		}
 
@@ -57,10 +70,10 @@ export class Nav extends WebComponent("nav-bar")
 			margin: 0 .9rem;
 			backdrop-filter: blur(10px);
 		}
-	`;
+	`]
 
 	render = () => html`
-		<nav>
+		<nav class="font-pixel border-pixels-4">
 			<a class="logo">B</a>
 			<div class="sep"></div>
 			<ul>
@@ -78,5 +91,7 @@ export class Nav extends WebComponent("nav-bar")
 				</li>
 			</ul>
 		</nav>
+		<div class="bg border-pixels-4"></div>
+		<div class="bg-glow"></div>
 	`
 }

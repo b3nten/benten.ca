@@ -1,4 +1,4 @@
-import { LitElement } from "lit";
+import { css, LitElement, type CSSResultGroup } from "lit";
 
 let globalSheets: CSSStyleSheet[] | null = null;
 
@@ -32,6 +32,96 @@ export function WebComponent(tag: string)
 				}
 			});
 		}
+
+
+		static styles: CSSResultGroup = css`
+			.font-pixel {
+				font-family:"Jersey 10";
+			}
+
+			.border-pixels-8 {
+				clip-path: polygon(
+					0px calc(100% - 20px),
+					4px calc(100% - 20px),
+					4px calc(100% - 12px),
+					8px calc(100% - 12px),
+					8px calc(100% - 8px),
+					12px calc(100% - 8px),
+					12px calc(100% - 4px),
+					20px calc(100% - 4px),
+					20px 100%,
+					calc(100% - 20px) 100%,
+					calc(100% - 20px) calc(100% - 4px),
+					calc(100% - 12px) calc(100% - 4px),
+					calc(100% - 12px) calc(100% - 8px),
+					calc(100% - 8px) calc(100% - 8px),
+					calc(100% - 8px) calc(100% - 12px),
+					calc(100% - 4px) calc(100% - 12px),
+					calc(100% - 4px) calc(100% - 20px),
+					100% calc(100% - 20px),
+					100% 20px,
+					calc(100% - 4px) 20px,
+					calc(100% - 4px) 12px,
+					calc(100% - 8px) 12px,
+					calc(100% - 8px) 8px,
+					calc(100% - 12px) 8px,
+					calc(100% - 12px) 4px,
+					calc(100% - 20px) 4px,
+					calc(100% - 20px) 0px,
+					20px 0px,
+					20px 4px,
+					12px 4px,
+					12px 8px,
+					8px 8px,
+					8px 12px,
+					4px 12px,
+					4px 20px,
+					0px 20px
+				);
+			}
+
+			.border-pixels-4 {
+				clip-path: polygon(
+					0px calc(100% - 8px),
+					4px calc(100% - 8px),
+					4px calc(100% - 4px),
+					8px calc(100% - 4px),
+					8px 100%,
+					calc(100% - 8px) 100%,
+					calc(100% - 8px) calc(100% - 4px),
+					calc(100% - 4px) calc(100% - 4px),
+					calc(100% - 4px) calc(100% - 8px),
+					100% calc(100% - 8px),
+					100% 8px,
+					calc(100% - 4px) 8px,
+					calc(100% - 4px) 4px,
+					calc(100% - 8px) 4px,
+					calc(100% - 8px) 0px,
+					8px 0px,
+					8px 4px,
+					4px 4px,
+					4px 8px,
+					0px 8px
+				);
+			}
+
+			.border-pixels-2 {
+				clip-path: polygon(
+					0px calc(100% - 6px),
+					6px calc(100% - 6px),
+					6px 100%,
+					calc(100% - 6px) 100%,
+					calc(100% - 6px) calc(100% - 6px),
+					100% calc(100% - 6px),
+					100% 6px,
+					calc(100% - 6px) 6px,
+					calc(100% - 6px) 0px,
+					6px 0px,
+					6px 6px,
+					0px 6px
+				);
+			}
+		`
 
 		constructor()
 		{

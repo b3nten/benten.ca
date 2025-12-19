@@ -4,7 +4,7 @@ import { Engine, assert, Frameloop } from "elysiatech";
 import { webglEntry } from "./entry";
 import { loadRapier } from "./physics";
 import { globalAssets } from "../assets";
-import { HidefRenderPipeline } from "./renderer";
+import { CustomRenderPipeline } from "./renderer";
 
 export class WebGlScene extends WebComponent("webgl-scene")
 {
@@ -40,7 +40,7 @@ export class WebGlScene extends WebComponent("webgl-scene")
 		this._frameloop = new Engine({
 			canvas: this.canvas,
 			init: webglEntry,
-			renderPipeline: new HidefRenderPipeline,
+			renderPipeline: new CustomRenderPipeline,
 		}).run()
 	}
 

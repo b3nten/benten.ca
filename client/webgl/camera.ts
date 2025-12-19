@@ -8,7 +8,7 @@ export const MainCameraPrefab = createPrefab(world => {
 	const viewport = mustExist(world.getSingletonComponent(Viewport));
 	return world.createEntityWith(
 		new Transform().setPosition(...CAMERA_POSITION),
-		new PerspectiveCamera(CAMERA_FOV, viewport.ratio, 0.1, 500),
+		new PerspectiveCamera(CAMERA_FOV, viewport.ratio, 1, 500),
 		new ActiveCameraComponent(),
 		new FreeLookComponent
 	);

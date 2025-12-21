@@ -27,3 +27,38 @@ class FullScreenQuad extends Three.Mesh
 }
 
 export const ScreenRenderer = new FullScreenQuad();
+
+export class SwapChain {
+
+    get readable() {
+        return this._target0;
+    }
+
+    get writable() {
+        return this._target1;
+    }
+
+    constructor() {
+        this._target0 = new Three.WebGLRenderTarget(1, 1, {
+            depthBuffer: true,
+            stencilBuffer: false,
+            format: Three.RGBAFormat,
+            type: Three.UnsignedByteType,
+        });
+        this._target1 = this._target0.clone();
+    }
+
+    setSize(width: number, height: number) {
+        this._target0.setSize(width, height);
+        this._target1.setSize(width, height);
+    }
+
+    swap() {
+        const temp = this._target0;
+        this._target0 = this._target1;
+        this._target1 = temp;
+    }
+
+    _target0: Three.WebGLRenderTarget;
+    _target1: Three.WebGLRenderTarget
+}

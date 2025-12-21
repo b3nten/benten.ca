@@ -1,4 +1,5 @@
 import {ActiveCameraComponent, ActorComponent, createPrefab, Transform} from "elysiatech";
+// @ts-expect-error
 import {Text} from 'troika-three-text'
 import * as Three from "three"
 import jersey1oUrl from "../assets/jersey_10.ttf"

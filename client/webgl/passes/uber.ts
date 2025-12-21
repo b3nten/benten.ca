@@ -1,6 +1,6 @@
 import {ACESFilmicToneMapping, ShaderMaterial, Vector2, type WebGLRenderer, type WebGLRenderTarget} from "three";
 import vertexShader from "./fullscreen.vert?raw"
-import fragmentShader from "./color.frag?raw"
+import fragmentShader from "./uber.frag?raw"
 import {Pass} from "three/examples/jsm/postprocessing/Pass.js";
 import {ScreenRenderer} from "../renderer_util";
 
@@ -11,7 +11,7 @@ export class UberShaderPass extends Pass
 		this.shader.uniforms.u_Resolution.value = new Vector2(width, height);
 	}
 
-	render(renderer: WebGLRenderer, writeBuffer: WebGLRenderTarget, readBuffer: WebGLRenderTarget, deltaTime: number, maskActive: boolean)
+	render(renderer: WebGLRenderer, writeBuffer: WebGLRenderTarget, readBuffer: WebGLRenderTarget)
 	{
 		renderer.setRenderTarget(writeBuffer);
 		this.shader.uniforms.u_Diffuse.value = readBuffer.texture;

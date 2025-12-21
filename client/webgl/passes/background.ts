@@ -1,13 +1,14 @@
 import * as Three from "three";
 import vertexShader from "./fullscreen.vert?raw"
-import fragmentShader from "./bg.frag?raw"
+import fragmentShader from "./background.frag?raw"
 import {Pass} from "three/examples/jsm/postprocessing/Pass.js";
 import {ScreenRenderer} from "../renderer_util";
 
 export class BackgroundPass extends Pass
 {
 	depthTexture: Three.Texture | null = null;
-	render(renderer: Three.WebGLRenderer, writeBuffer: Three.WebGLRenderTarget, readBuffer: Three.WebGLRenderTarget, deltaTime: number, maskActive: boolean)
+
+	render(renderer: Three.WebGLRenderer, writeBuffer: Three.WebGLRenderTarget, readBuffer: Three.WebGLRenderTarget)
 	{
 		renderer.setRenderTarget(writeBuffer);
 		this.shader.uniforms["u_Diffuse"].value = readBuffer.texture;

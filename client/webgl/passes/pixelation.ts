@@ -6,30 +6,15 @@ import {
 	RGBAFormat,
 	ShaderMaterial,
 	Vector2,
-	Vector3,
 	Vector4,
 	WebGLRenderer,
 	WebGLRenderTarget,
-	type WebGLDepthBuffer,
 	Texture
 } from "three";
 import vertexShader from "./fullscreen.vert?raw"
 import fragmentShader from "./pixelation.frag?raw"
 import { ScreenRenderer } from "../renderer_util";
 import {Pass} from "three/examples/jsm/postprocessing/Pass.js";
-
-const pixelationMaterial = new ShaderMaterial({
-	uniforms: {
-		u_DiffuseMap: { value: null },
-		u_DepthMap: { value: null },
-		u_NormalMap: { value: null },
-		u_Resolution: { value: new Vector4() },
-		u_NormalEdgeStrength: { value: 1 },
-		u_DepthEdgeStrength: { value: .5 }
-	},
-	vertexShader,
-	fragmentShader,
-})
 
 export class PixelPass extends Pass
 {
@@ -111,4 +96,17 @@ export class PixelPass extends Pass
 
 	downsampleMaterial = new MeshBasicMaterial({ transparent: true })
 }
+
+const pixelationMaterial = new ShaderMaterial({
+	uniforms: {
+		u_DiffuseMap: { value: null },
+		u_DepthMap: { value: null },
+		u_NormalMap: { value: null },
+		u_Resolution: { value: new Vector4() },
+		u_NormalEdgeStrength: { value: 1 },
+		u_DepthEdgeStrength: { value: .5 }
+	},
+	vertexShader,
+	fragmentShader,
+})
 

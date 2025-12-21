@@ -7,7 +7,10 @@ import {assert} from "elysiatech/lib";
 import {Vector2, type WebGLRenderer, type WebGLRenderTarget} from "three";
 import {ScreenRenderer} from "./renderer_util";
 import {UberShaderPass} from "./shaders/color";
-import {UnrealBloomPass} from "three/examples/jsm/postprocessing/UnrealBloomPass";
+import {UnrealBloomPass} from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { BloomPass} from "three/examples/jsm/postprocessing/BloomPass.js";
+import {BackgroundPass} from "./shaders/bg";
+import {TransparentBloom} from "./shaders/bloom";
 
 export class CustomRenderPipeline implements IRenderPipeline {
     world?: World;
@@ -22,7 +25,16 @@ export class CustomRenderPipeline implements IRenderPipeline {
 
     uberPass = new UberShaderPass()
 
-    bloom = new UnrealBloomPass(undefined, .9, 0.4, .9);
+    bloom = new TransparentBloom(
+        new Three.Vector2(512, 512),
+        1.5,
+        0.4,
+        .9,
+    )
+
+    // bloom = new BloomPass(1.5, 32)
+
+    backgroundPass = new BackgroundPass;
 
     copyPass = new CopyPass();
 
@@ -64,19 +76,24 @@ export class CustomRenderPipeline implements IRenderPipeline {
         // this.saoPass.output = SSAOPass.OUTPUT.Blur
         this.saoPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
 
+        // bloom
+        this.bloom.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
+
         // pixel effect
         this.pixelPass.prerender(renderer, this.swapChain.readable.texture, this.prepassPass.depthTexture, this.prepassPass.normalTexture);
         this.pixelPass.render(renderer, this.swapChain.writable);
         this.swapChain.swap();
 
-        // uberpass
-        this.uberPass.shader.uniforms["u_MousePos"].value = new Vector2(Input.mouseX, Input.mouseY);
-        this.uberPass.shader.uniforms["u_Time"].value += delta;
-        this.uberPass.shader.uniforms["u_MouseVelocity"].value = new Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
-        this.uberPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
+        this.backgroundPass.shader.uniforms["u_MousePos"].value = new Vector2(Input.mouseX, Input.mouseY);
+        this.backgroundPass.shader.uniforms["u_Time"].value += delta;
+        this.backgroundPass.shader.uniforms["u_MouseVelocity"].value = new Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
+        this.backgroundPass.depthTexture = this.prepassPass.depthTexture;
+        this.backgroundPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
         this.swapChain.swap();
 
-        this.bloom.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
+        // uberpass
+        this.uberPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
+        this.swapChain.swap();
 
         // final copy to screen
         this.copyPass.render(renderer, null, this.swapChain.readable, delta, false);
@@ -93,6 +110,7 @@ export class CustomRenderPipeline implements IRenderPipeline {
         this.saoPass.scene = scene;
         this.saoPass.setSize(viewport.width, viewport.height);
         this.bloom.setSize(viewport.width, viewport.height);
+        this.backgroundPass.setSize(viewport.width, viewport.height);
     }
 
     _onScroll() {
@@ -216,5 +234,4 @@ class CopyPass extends Pass
             }
         `,
     })
-
 }

@@ -1,12 +1,14 @@
 precision highp float;
 
 varying vec2 vUv;
+uniform sampler2D u_Diffuse;
 uniform vec2 u_Resolution;
 uniform vec2 u_MousePos;
 uniform vec2 u_MouseVelocity;
 uniform float u_Time;
 
-void main() {
+vec4 background() {
+    vec4 c;
     vec2 correctedMouse = vec2(u_MousePos.x, u_Resolution.y - u_MousePos.y);
 
     vec2 pitch = vec2(100.0, 100.0);
@@ -30,8 +32,16 @@ void main() {
 
     if (lineX < 1.0 || lineY < 1.0) {
         float pulse = 0.8 + 0.2 * sin(u_Time * 2.0);
-        gl_FragColor = vec4(vec3(1.0) * pulse, 0.7);
+        c = vec4(vec3(1.0) * pulse, 0.7);
     } else {
-        gl_FragColor = vec4(0.25, 0.0, 0.65, 1.0);
+        c = vec4(0.25, 0.0, 0.65, 1.0);
     }
+    return c;
+}
+
+void main() {
+    vec4 bg = background();
+    vec4 foreground = texture2D(u_Diffuse, vUv);
+    vec3 color = mix(bg.rgb, foreground.rgb, foreground.a);
+    gl_FragColor = vec4(color, 1.);
 }

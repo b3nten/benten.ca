@@ -1,6 +1,7 @@
 import {ActiveCameraComponent, ActorComponent, createPrefab, Transform} from "elysiatech";
 import {Text} from 'troika-three-text'
 import * as Three from "three"
+import jersey1oUrl from "../assets/jersey_10.ttf"
 
 export const textPrefab = createPrefab(world => {
 
@@ -13,15 +14,14 @@ export const textPrefab = createPrefab(world => {
         bentonText.fontSize = 6
         bentonText.position.z = -2
         bentonText.material = new Three.MeshStandardMaterial({
-            color: "white",
-            emissive: "white",
-            emissiveIntensity: 10,
+            color: new Three.Color(50,50,50),
         })
+        bentonText.font = jersey1oUrl
         bentonText.sync()
 
         const vec3 = new Three.Vector3;
-        const POS_X = 24;
-        const POS_Y = -48;
+        const POS_X = 120;
+        const POS_Y = 0;
         const TARGET_Z = -20;
 
         world.addComponents(bentonEntity,
@@ -72,10 +72,11 @@ export const textPrefab = createPrefab(world => {
             emissive: "white",
             emissiveIntensity: 10,
         })
+        text.font = jersey1oUrl
         text.sync()
 
         const vec3 = new Three.Vector3;
-        const POS_X = window.innerWidth - 800;
+        const POS_X = window.innerWidth - 600;
         const POS_Y = window.innerHeight - 250;
         const TARGET_Z = -20;
 

@@ -1,4 +1,4 @@
-import { InfiniteGridHelper, remapRange, Transform, World } from "elysiatech";
+import { remapRange, Transform, World } from "elysiatech";
 import * as Three from "three";
 import { MainCameraPrefab } from "./camera";
 import {ComputerMovementSystem, createComputerPrefabFactory, ResizeBallComponent} from "./computers";
@@ -31,8 +31,15 @@ export function webglEntry(world: World)
 	)
 
 	world.createEntityWith(
-		new Three.AmbientLight("white", 2),
-		new Transform,
+		new Transform().setPosition(0, -5, 0),
+		new Three.PointLight("#FFEDFE", 50),
+	)
+
+	world.createEntityWith(
+		new Three.AmbientLight("#FFEDFE", 2),
+		new Three.PointLight("#FFEDFE", 50),
+		new Transform().setPosition(0, 5, 0),
+		// new Three.Mesh(new Three.BoxGeometry, new Three.MeshBasicMaterial({ color: "red" }))
 		// new InfiniteGridHelper(1,2, undefined, 300),
 	)
 }

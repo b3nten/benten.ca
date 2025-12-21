@@ -56,11 +56,7 @@ export class ComputerMovementSystem extends System
 	_vec = new Vector3(0);
 }
 
-const scaleFactor = remapRange(window.innerWidth, 400, 1400, 0.8, 1.2);
-
-export const balls = [...Array(100)].map(() => ({ scale: [0.75, 0.75, 1, 1, 1.25][Math.floor(Math.random() * 5)] * scaleFactor }));
-
-let r = MathUtils.randFloatSpread;
+const rfs = MathUtils.randFloatSpread;
 
 export function createComputerPrefabFactory() {
 	const monitor = globalAssets.unwrap("monitor").clone().children[0];
@@ -80,11 +76,11 @@ export function createComputerPrefabFactory() {
 	return (args: { scale: number }) => {
 		return createPrefab((world) => {
 			let rand = Math.random();
-			const mesh = rand > 0.5 ? monitor : terminal;
+			const mesh = rand > .25 ? monitor : terminal;
 			const collider = rand > 0.5 ? monitorCollider : terminalCollider;
 			return world.createEntityWith(
 				mesh.clone(),
-				new Transform().setPosition(r(20), r(20) + 25, r(20) - 10),
+				new Transform().setPosition(rfs(20), rfs(20) + 25, rfs(20) - 10),
 				new RigidBodyComponent(
 					rapier
 						.RigidBodyDesc.dynamic()

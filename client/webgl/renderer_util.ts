@@ -26,4 +26,4 @@ class FullScreenQuad extends Three.Mesh
 	#camera = new Three.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
 }
 
-export const fullscreenQuad = new FullScreenQuad();
+export const ScreenRenderer = new FullScreenQuad();

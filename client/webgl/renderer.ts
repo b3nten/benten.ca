@@ -1,159 +1,220 @@
-import { Input, type IRenderPipeline, remapRange, type Viewport, World } from "elysiatech";
+import {Input, type IRenderPipeline, remapRange, type Viewport, World} from "elysiatech";
 import * as Three from "three"
-import { colorShader } from "./shaders/color";
-import { bgShader } from "./shaders/bg";
-import { fullscreenQuad } from "./renderer_util";
-import { PixelPass } from "./shaders/pixelation";
-
-const renderTargetOptions = {
-  depthBuffer: false,
-  stencilBuffer: false,
-  format: Three.RGBAFormat,
-  type: Three.UnsignedByteType,
-}
+import {PixelPass} from "./shaders/pixelation";
+import {SSAOPass} from "three/examples/jsm/postprocessing/SSAOPass.js";
+import {Pass} from "three/examples/jsm/postprocessing/Pass.js";
+import {assert} from "elysiatech/lib";
+import {Vector2, type WebGLRenderer, type WebGLRenderTarget} from "three";
+import {ScreenRenderer} from "./renderer_util";
+import {UberShaderPass} from "./shaders/color";
+import {UnrealBloomPass} from "three/examples/jsm/postprocessing/UnrealBloomPass";
 
 export class CustomRenderPipeline implements IRenderPipeline {
-	world?: World;
+    world?: World;
 
-	depthTarget = new Three.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
-   depthBuffer: true,
-   stencilBuffer: false,
-   format: Three.RGBAFormat,
-	 type: Three.UnsignedByteType,
- 	});
+    swapChain = new SwapChain();
 
-	normalTarget = new Three.WebGLRenderTarget(1, 1, {
-		...renderTargetOptions,
-		minFilter: Three.NearestFilter,
-		magFilter: Three.NearestFilter,
-		type: Three.HalfFloatType
-	});
+    prepassPass = new PrepassClass;
 
-	bgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
+    saoPass: SSAOPass;
 
-	fgTarget = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
+    pixelPass = new PixelPass();
 
-	fg2Target = new Three.WebGLRenderTarget(1, 1, { ...renderTargetOptions });
+    uberPass = new UberShaderPass()
 
-	pixelPass = new PixelPass
+    bloom = new UnrealBloomPass(undefined, .9, 0.4, .9);
 
-	createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer
-	{
-		return new Three.WebGLRenderer({
-			canvas,
-			antialias: false,
-			powerPreference: "high-performance",
-			precision: "highp",
-			alpha: true,
-			depth: false,
-			stencil: false,
-		})
-	}
+    copyPass = new CopyPass();
 
-	configure = (renderer: Three.WebGLRenderer): void =>
-	{
-		window.addEventListener("scroll", this._onScroll.bind(this))
+    createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer {
+        return new Three.WebGLRenderer({
+            canvas,
+            antialias: false,
+            powerPreference: "high-performance",
+            precision: "highp",
+            alpha: true,
+            depth: false,
+            stencil: false,
+        })
+    }
 
-		renderer.setPixelRatio(1)
-		renderer.info.autoReset = false;
-		renderer.toneMapping = Three.NoToneMapping;
-		renderer.autoClear = false;
-		renderer.autoClearDepth = false;
+    configure = (renderer: Three.WebGLRenderer): void => {
+        window.addEventListener("scroll", this._onScroll.bind(this))
 
-		colorShader.uniforms["u_BackgroundMap"].value = this.bgTarget.texture
-		colorShader.uniforms["u_Map0"].value = this.fgTarget.texture
-	}
+        renderer.setPixelRatio(1)
+        renderer.info.autoReset = false;
+        renderer.toneMapping = Three.NoToneMapping;
+        // renderer.autoClear = false;
+        // renderer.autoClearDepth = false;
+    }
 
-	render = (_: number, scene: Three.Scene, camera: Three.Camera, renderer: Three.WebGLRenderer, viewport: Viewport): void =>
-	{
-		this._prepareTargets(renderer, viewport.width, viewport.height)
-		camera.layers.set(0)
-		const _gl = renderer.getContext();
+    render = (delta: number, scene: Three.Scene, camera: Three.Camera, renderer: Three.WebGLRenderer, viewport: Viewport): void => {
+        if(!this.saoPass) {
+            this.saoPass = new SSAOPass(scene, camera as Three.PerspectiveCamera, viewport.width, viewport.height);
+        }
+        this._preparePasses(scene, camera, viewport);
 
-		// depth
-		{
-			// renderer.setRenderTarget(null)
-			renderer.setRenderTarget(this.depthTarget)
-			scene.overrideMaterial = depthMaterial;
-			renderer.render(scene, camera);
-			scene.overrideMaterial = null;
-			// return;
-		}
+        this.prepassPass.render(renderer)
 
-		let renderBufferProps = renderer.properties.get(this.depthTarget) as any;
-		let depthRenderBuffer: WebGLRenderbuffer = renderBufferProps.__webglDepthRenderbuffer || renderBufferProps.__webglDepthbuffer;
+        // foreground elements
+        renderer.setRenderTarget(this.swapChain.writable);
+        renderer.render(scene, camera)
+        this.swapChain.swap();
 
-		// background
-		{
-			bgShader.uniforms["u_Resolution"].value = new Three.Vector2(viewport.width, viewport.height);
-			bgShader.uniforms["u_MouseVelocity"].value = new Three.Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
-			bgShader.uniforms["u_MousePos"].value = new Three.Vector2(Input.mouseX, Input.mouseY)
-			bgShader.uniforms["u_Time"].value = performance.now() * 0.001;
-			renderer.setRenderTarget(this.bgTarget)
-			fullscreenQuad.render(renderer, bgShader)
-		}
+        // this.saoPass.output = SSAOPass.OUTPUT.Blur
+        this.saoPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
 
-		// fg normal pass
-		{
-			scene.overrideMaterial = meshNormalMaterial;
-			renderer.setRenderTarget(this.normalTarget)
-			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
-			renderer.render(scene, camera);
-			scene.overrideMaterial = null;
-		}
+        // pixel effect
+        this.pixelPass.prerender(renderer, this.swapChain.readable.texture, this.prepassPass.depthTexture, this.prepassPass.normalTexture);
+        this.pixelPass.render(renderer, this.swapChain.writable);
+        this.swapChain.swap();
 
-		// foreground elements
-		{
-			renderer.setRenderTarget(this.fg2Target)
-			_gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, depthRenderBuffer);
-			renderer.render(scene, camera);
-		}
+        // uberpass
+        this.uberPass.shader.uniforms["u_MousePos"].value = new Vector2(Input.mouseX, Input.mouseY);
+        this.uberPass.shader.uniforms["u_Time"].value += delta;
+        this.uberPass.shader.uniforms["u_MouseVelocity"].value = new Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
+        this.uberPass.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
+        this.swapChain.swap();
 
-		// fg pixel pass
-		{
-			renderer.setRenderTarget(this.fgTarget)
-			this.pixelPass.resize(viewport.width, viewport.height);
-			this.pixelPass.render(renderer, this.fg2Target, this.depthTarget, depthRenderBuffer, this.normalTarget, this.fgTarget);
-		}
+        this.bloom.render(renderer, this.swapChain.writable, this.swapChain.readable, delta, false);
 
-		renderer.setRenderTarget(null);
-		fullscreenQuad.render(renderer, colorShader)
-	}
+        // final copy to screen
+        this.copyPass.render(renderer, null, this.swapChain.readable, delta, false);
+    }
 
-	_onScroll()
-	{
-		const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight, 0, 1);
-		const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
-		this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 2, 10)
-		colorShader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
-	}
+    _preparePasses(scene: Three.Scene, camera: Three.Camera, viewport: Viewport)
+    {
+        this.swapChain.setSize(viewport.width, viewport.height);
+        this.prepassPass.update(scene, camera);
+        this.prepassPass.setSize(viewport.width, viewport.height);
+        this.pixelPass.setSize(viewport.width, viewport.height);
+        this.uberPass.setSize(viewport.width, viewport.height);
+        this.saoPass.camera = camera as Three.PerspectiveCamera;
+        this.saoPass.scene = scene;
+        this.saoPass.setSize(viewport.width, viewport.height);
+        this.bloom.setSize(viewport.width, viewport.height);
+    }
 
-	_prepareTargets(renderer: Three.WebGLRenderer, width: number, height: number)
-	{
-		this.bgTarget.setSize(width, height);
-		this.fgTarget.setSize(width, height);
-		this.depthTarget.setSize(width, height);
-		this.normalTarget.setSize(width, height);
-		this.fg2Target.setSize(width, height);
-		renderer.setRenderTarget(this.bgTarget)
-		renderer.clear();
-		renderer.setRenderTarget(this.fgTarget)
-		renderer.clear();
-		renderer.setRenderTarget(this.normalTarget)
-		renderer.clear();
-		renderer.setRenderTarget(this.depthTarget)
-		renderer.clear();
-		renderer.setRenderTarget(this.fg2Target)
-		renderer.clear();
-		renderer.setRenderTarget(null)
-	}
+    _onScroll() {
+        const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight, 0, 1);
+        const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
+        this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 1, 15)
+        this.uberPass.shader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
+    }
 }
 
+class PrepassClass extends Pass
+{
+    depthTarget = new Three.WebGLRenderTarget(1,1, {
+        depthBuffer: true,
+        stencilBuffer: false,
+        format: Three.RGBAFormat,
+        type: Three.UnsignedByteType,
+        depthTexture: new Three.DepthTexture(1,1, Three.UnsignedShortType),
+        resolveDepthBuffer: true,
+    });
 
+    get depthTexture() { return this.depthTarget.depthTexture! }
 
-const depthMaterial = new Three.MeshDepthMaterial({
-	depthPacking: Three.BasicDepthPacking
-})
+    get normalTexture() { return this.depthTarget.texture }
 
-const meshNormalMaterial = new Three.MeshNormalMaterial();
-meshNormalMaterial.blending = Three.NoBlending;
+    scene?: Three.Scene;
+    camera?: Three.Camera
+    material = new Three.MeshNormalMaterial();
+
+    update(scene: Three.Scene, camera: Three.Camera)
+    {
+        this.scene = scene;
+        this.camera = camera;
+    }
+
+    render(renderer: Three.WebGLRenderer)
+    {
+        assert(this.scene, "PrepassClass: No scene set for prepass");
+        assert(this.camera, "PrepassClass: No camera set for prepass");
+
+        renderer.setRenderTarget(this.depthTarget);
+        renderer.clear();
+
+        const previousOverrideMaterial = this.scene.overrideMaterial;
+        this.scene.overrideMaterial = this.material;
+
+        renderer.render(this.scene, this.camera);
+
+        this.scene.overrideMaterial = previousOverrideMaterial;
+    }
+
+    setSize(width: number, height: number)
+    {
+        this.depthTarget.setSize(width, height);
+    }
+
+    #depthBuffer: WebGLRenderbuffer | null = null;
+}
+
+class SwapChain
+{
+
+    get readable() { return this._target0; }
+    get writable() { return this._target1; }
+
+    constructor()
+    {
+        this._target0 = new Three.WebGLRenderTarget(1, 1, {
+            depthBuffer: true,
+            stencilBuffer: false,
+            format: Three.RGBAFormat,
+            type: Three.UnsignedByteType,
+        });
+        this._target1 = this._target0.clone();
+    }
+
+    setSize(width: number, height: number)
+    {
+        this._target0.setSize(width, height);
+        this._target1.setSize(width, height);
+    }
+
+    swap()
+    {
+        const temp = this._target0;
+        this._target0 = this._target1;
+        this._target1 = temp;
+    }
+
+    _target0: Three.WebGLRenderTarget;
+    _target1: Three.WebGLRenderTarget
+}
+
+class CopyPass extends Pass
+{
+    needsSwap: boolean = true;
+
+    render(renderer: WebGLRenderer, writeBuffer: WebGLRenderTarget, readBuffer: WebGLRenderTarget, deltaTime: number, maskActive: boolean)
+    {
+        this.copyShader.uniforms["tDiffuse"].value = readBuffer.texture;
+        renderer.setRenderTarget(writeBuffer);
+        ScreenRenderer.render(renderer, this.copyShader);
+    }
+
+    copyShader = new Three.ShaderMaterial({
+        uniforms: {
+            tDiffuse: { value: null },
+        },
+        vertexShader: `
+            varying vec2 v_Uv;
+            void main() {
+                v_Uv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D tDiffuse;
+            varying vec2 v_Uv;
+            void main() {
+                gl_FragColor = texture2D(tDiffuse, v_Uv);
+            }
+        `,
+    })
+
+}

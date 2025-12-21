@@ -32,12 +32,17 @@ export function webglEntry(world: World)
 
 	world.createEntityWith(
 		new Transform().setPosition(0, -5, 0),
-		new Three.PointLight("#FFEDFE", 50),
+		new Three.PointLight("#FFEDFE", 20),
+	)
+
+	world.createEntityWith(
+		new Transform().setPosition(0, 0, 10),
+		new Three.PointLight("#FFEDFE", 5),
 	)
 
 	world.createEntityWith(
 		new Three.AmbientLight("#FFEDFE", 2),
-		new Three.PointLight("#FFEDFE", 50),
+		new Three.PointLight("#FFEDFE", 30),
 		new Transform().setPosition(0, 5, 0),
 		// new Three.Mesh(new Three.BoxGeometry, new Three.MeshBasicMaterial({ color: "red" }))
 		// new InfiniteGridHelper(1,2, undefined, 300),

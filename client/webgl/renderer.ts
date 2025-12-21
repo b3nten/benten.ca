@@ -96,9 +96,9 @@ export class CustomRenderPipeline implements IRenderPipeline {
     }
 
     _onScroll() {
-        const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight, 0, 1);
+        const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 2, 0, 1);
+        this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 1, 30)
         const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
-        this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 1, 15)
         this.uberPass.shader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
     }
 }

@@ -21,7 +21,7 @@ export const textPrefab = createPrefab(world => {
 
         const vec3 = new Three.Vector3;
         const POS_X = 24;
-        const POS_Y = 24;
+        const POS_Y = -48;
         const TARGET_Z = -20;
 
         world.addComponents(bentonEntity,

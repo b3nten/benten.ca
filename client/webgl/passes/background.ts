@@ -24,9 +24,9 @@ export class BackgroundPass extends Pass
 		uniforms: {
 			u_Diffuse: { value: null },
 			u_Depth: { value: null },
-			u_Resolution: { value: null },
-			u_MousePos: { value: null },
-			u_MouseVelocity: { value: null },
+			u_Resolution: { value: new Three.Vector2 },
+			u_MousePos: { value: new Three.Vector2 },
+			u_MouseVelocity: { value: new Three.Vector2 },
 			u_Time: { value: null },
 		},
 		fragmentShader,

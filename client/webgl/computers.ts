@@ -1,6 +1,6 @@
 import { createPrefab, remapRange, System, Transform, type Component } from "elysiatech";
 import { ColliderComponent, RigidBodyComponent } from "./physics";
-import { MathUtils, Vector3 } from "three";
+import {MathUtils, PointLight, Vector3} from "three";
 import { globalAssets } from "../assets";
 import * as Three from "three"
 
@@ -90,6 +90,7 @@ export function createComputerPrefabFactory() {
 				),
 				new ColliderComponent(collider),
 				new ComputerMovementComponent(args.scale),
+				// new PointLight("lime", 1, 2, 2)
 			);
 		});
 	}

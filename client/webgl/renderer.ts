@@ -10,7 +10,8 @@ import {CopyPass} from "./passes/copy";
 import {SwapChain} from "./renderer_util";
 import {Prepass} from "./passes/pre";
 
-export class CustomRenderPipeline implements IRenderPipeline {
+export class CustomRenderPipeline implements IRenderPipeline
+{
     swapChain = new SwapChain();
 
     prepass = new Prepass;
@@ -21,18 +22,14 @@ export class CustomRenderPipeline implements IRenderPipeline {
 
     uberPass = new UberShaderPass()
 
-    bloom = new TransparentBloom(
-        new Three.Vector2(512, 512),
-        1.5,
-        0.4,
-        .9,
-    )
+    bloom = new TransparentBloom(new Three.Vector2(512, 512), 1.5, 0.4, .9)
 
     backgroundPass = new BackgroundPass;
 
     copyPass = new CopyPass();
 
-    createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer {
+    createRenderer(canvas: HTMLCanvasElement): Three.WebGLRenderer
+    {
         return new Three.WebGLRenderer({
             canvas,
             antialias: false,
@@ -44,16 +41,18 @@ export class CustomRenderPipeline implements IRenderPipeline {
         })
     }
 
-    configure = (renderer: Three.WebGLRenderer): void => {
-        window.addEventListener("scroll", this._onScroll.bind(this))
+    configure = (renderer: Three.WebGLRenderer): void =>
+    {
+        window.addEventListener("scroll", this.onScroll.bind(this))
 
         renderer.setPixelRatio(1)
         renderer.info.autoReset = false;
         renderer.toneMapping = Three.NoToneMapping;
     }
 
-    render = (delta: number, scene: Three.Scene, camera: Three.Camera, renderer: Three.WebGLRenderer, viewport: Viewport): void => {
-        this._preparePasses(scene, camera, viewport);
+    render = (delta: number, scene: Three.Scene, camera: Three.Camera, renderer: Three.WebGLRenderer, viewport: Viewport): void =>
+    {
+        this.preparePasses(scene, camera, viewport);
 
         // prepass (depth + normals)
         this.prepass.render(renderer)
@@ -75,9 +74,7 @@ export class CustomRenderPipeline implements IRenderPipeline {
         this.swapChain.swap();
 
         // background pass
-        this.backgroundPass.shader.uniforms["u_MousePos"].value = new Vector2(Input.mouseX, Input.mouseY);
         this.backgroundPass.shader.uniforms["u_Time"].value += delta;
-        this.backgroundPass.shader.uniforms["u_MouseVelocity"].value = new Vector2(Input.mouseDeltaX, Input.mouseDeltaY);
         this.backgroundPass.depthTexture = this.prepass.depthTexture;
         this.backgroundPass.render(renderer, this.swapChain.writable, this.swapChain.readable);
         this.swapChain.swap();
@@ -90,7 +87,7 @@ export class CustomRenderPipeline implements IRenderPipeline {
         this.copyPass.render(renderer, null, this.swapChain.readable);
     }
 
-    _preparePasses(scene: Three.Scene, camera: Three.Camera, viewport: Viewport)
+    preparePasses(scene: Three.Scene, camera: Three.Camera, viewport: Viewport)
     {
         if(!this.saoPass) {
             this.saoPass = new SSAOPass(scene, camera as Three.PerspectiveCamera, viewport.width, viewport.height);
@@ -105,13 +102,15 @@ export class CustomRenderPipeline implements IRenderPipeline {
         this.saoPass.setSize(viewport.width, viewport.height);
         this.bloom.setSize(viewport.width, viewport.height);
         this.backgroundPass.setSize(viewport.width, viewport.height);
+        this.backgroundPass.shader.uniforms["u_MousePos"].value.set(Input.mouseX, Input.mouseY);
+        this.backgroundPass.shader.uniforms["u_MouseVelocity"].value.set(Input.mouseDeltaX, Input.mouseDeltaY);
     }
 
-    _onScroll() {
+    onScroll()
+    {
         const scrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 2, 0, 1);
         this.pixelPass.pixelSize = remapRange(scrollAmount, 0, 1, 1, 30)
         const doubledScrollAmount = remapRange(window.scrollY, 0, window.innerHeight * 4, 0, 1);
         this.uberPass.shader.uniforms["u_Brightness"].value = remapRange(doubledScrollAmount, 1, 0, -2, .065)
     }
 }
-

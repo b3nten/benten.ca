@@ -1,0 +1,7 @@
+{
+  "name": "Industry Music",
+  "summary": "Bespoke online music marketplace for Industry Music.",
+  "stack": ["Next.js", "Fauna", "AWS"],
+  "overview": "A custom online music marketplace for Industry Music, built with Next.js and Fauna. The site features a full user system with a marketplace, a custom CMS for managing tracks and artists, and the audio processing pipeline is enabled by AWS and Serverless.",
+  "link": "https://industrymusic.com/"
+}

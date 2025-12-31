@@ -11,7 +11,7 @@ export class Nav extends WebComponent("nav-bar")
 			left: 50%;
 			transform: translateX(-50%);
 			z-index: 10;
-			font-size: 1.5rem;
+			font-size: 1.25rem;
 			font-weight: 300;
 			color: white;
 			flex-direction: row;
@@ -23,7 +23,7 @@ export class Nav extends WebComponent("nav-bar")
 				flex-direction: row;
 				align-items: center;
 				justify-content: center;
-				padding: 0.6rem 1rem;
+				padding: 0.2rem .75rem;
 				background-color: #7240FF;
 				line-height: 1;
 			}

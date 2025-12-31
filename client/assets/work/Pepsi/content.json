@@ -1,0 +1,7 @@
+{
+  "name": "Pepsi Dataviz",
+  "summary": "3D data visualization for Pepsi's operations.",
+  "stack": ["React", "Three.js", "Sanity"],
+  "overview": "A dynamic data cloud powered by a headless CMS providing control of each and every data point and relationship/connection in the system. The data visualizer was designed to be used on screens worldwide across all Pepsi offices as a visual learning tool for employees to gain a holistic understanding of how Pepsi is using data to power all of their operations.",
+  "link": "https://pepsi-dataviz-demo.vercel.app/"
+}

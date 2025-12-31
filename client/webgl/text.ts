@@ -1,4 +1,4 @@
-import {ActiveCameraComponent, ActorComponent, createPrefab, Transform} from "elysiatech";
+import {ActiveCameraComponent, ActorComponent, createPrefab, Transform, remapRange } from "elysiatech";
 // @ts-expect-error
 import {Text} from 'troika-three-text'
 import * as Three from "three"
@@ -21,8 +21,6 @@ export const textPrefab = createPrefab(world => {
         bentonText.sync()
 
         const vec3 = new Three.Vector3;
-        const POS_X = 120;
-        const POS_Y = 0;
         const TARGET_Z = -20;
 
         world.addComponents(bentonEntity,
@@ -30,8 +28,8 @@ export const textPrefab = createPrefab(world => {
                 update(_, entity, world) {
                     const transform = world.getComponent(entity, Transform)!;
                     for (const [, , camera] of world.componentIterator(Transform, Three.PerspectiveCamera, ActiveCameraComponent)) {
-                        const ndcx = (POS_X / window.innerWidth) * 2 - 1;
-                        const ndcy = -(POS_Y / window.innerHeight) * 2 + 1;
+                        const ndcx = (.05) * 2 - 1;
+                        const ndcy = -(.1) * 2 + 1;
 
                         vec3.set(ndcx, ndcy, 0.5);
                         vec3.unproject(camera);
@@ -44,12 +42,9 @@ export const textPrefab = createPrefab(world => {
                         const finalY = camera.position.y + t * vec3.y;
 
                         transform.setPosition(finalX, finalY, TARGET_Z);
-                        transform.setScale(
-                            window.innerWidth / 1000,
-                            window.innerWidth / 1000,
-                            1
-                        )
+                        const scaleValue = remapRange(window.innerWidth, 400, 1200, .8, 1.5)
 
+                        transform.setScale(scaleValue, scaleValue, 1)
                         break
                     }
                 }
@@ -65,7 +60,7 @@ export const textPrefab = createPrefab(world => {
     {
         const text = new Text()
         text.text = 'The digital home of\nBenton Boychuk-Chorney'
-        text.fontSize = .75
+        text.fontSize = 2
         text.position.z = -2
         text.alignment = 'centred'
         text.material = new Three.MeshStandardMaterial({
@@ -77,8 +72,6 @@ export const textPrefab = createPrefab(world => {
         text.sync()
 
         const vec3 = new Three.Vector3;
-        const POS_X = window.innerWidth - 600;
-        const POS_Y = window.innerHeight - 250;
         const TARGET_Z = -20;
 
         world.addComponents(blurbEntity,
@@ -86,8 +79,8 @@ export const textPrefab = createPrefab(world => {
                 update(_, entity, world) {
                     const transform = world.getComponent(entity, Transform)!;
                     for (const [, , camera] of world.componentIterator(Transform, Three.PerspectiveCamera, ActiveCameraComponent)) {
-                        const ndcx = (POS_X / window.innerWidth) * 2 - 1;
-                        const ndcy = -(POS_Y / window.innerHeight) * 2 + 1;
+                        const ndcx = (.5) * 2 - 1;
+                        const ndcy = -(.7) * 2 + 1;
 
                         vec3.set(ndcx, ndcy, 0.5);
                         vec3.unproject(camera);
@@ -100,6 +93,9 @@ export const textPrefab = createPrefab(world => {
                         const finalY = camera.position.y + t * vec3.y;
 
                         transform.setPosition(finalX, finalY, TARGET_Z);
+
+                        const scaleValue = remapRange(window.innerWidth, 400, 1200, .9, 1.5)
+
                         transform.setScale(
                             window.innerWidth / 1000,
                             window.innerWidth / 1000,

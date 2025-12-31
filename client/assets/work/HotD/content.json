@@ -1,0 +1,7 @@
+{
+  "name": "House of the Dragon",
+  "summary": "Interactive experience for HBO's House of the Dragon.",
+  "stack": ["Next.js", "Tailwind", "GSAP"],
+  "overview": "A set of three microsites for HBO's House of the Dragon, each with a unique interactive experience. The sites feature advanced animations and transitions using GSAP, with a focus on performance and accessibility. The sites were built with Next.js and Tailwind, allowing for a fast and responsive experience across all devices.",
+  "link": "https://www.hbo.com/house-of-the-dragon/official-guide"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Call Of Duty: BO6 Experience",
+  "summary": "Interactive experience for Call of Duty: Black Ops 6.",
+  "stack": ["React", "Three.js", "AWS"],
+  "overview": "Reveal microsite for the new Call of Duty: Black Ops 6 game as the hub of a large integrated digital and OOH marketing campaign. The experience features a fully functional 90s analog tv with realtime webgl effects for authentic static, on screen displays, and working physical buttons. A collection of hidden easter eggs were rolled out to really engage fans of the franchise. The award-winning microsite received over 500,000 visitors on launch day and was a top trending search on twitter.",
+  "link": "https://archive-thetruthdies-droplab.vercel.app"
+}

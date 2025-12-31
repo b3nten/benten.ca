@@ -1,0 +1,7 @@
+{
+  "name": "Chef's Table Store",
+  "summary": "E-commerce platform for the Netflix series Chef's Table.",
+  "stack": ["Remix", "Shopify", "Hydrogen", "Sanity"],
+  "overview": "A headless e-commerce site for the award-winning Chef’s Table series, built with Remix and Sanity on top of Shopify and their Hydrogen framework. The custom CMS deeply integrated with Shopify to allow for a seamless editorial and product management experience, while the page builder allowed for flexible content creation.",
+  "link": "https://chefstable.com"
+}

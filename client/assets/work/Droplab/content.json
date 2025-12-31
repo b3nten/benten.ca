@@ -1,0 +1,7 @@
+{
+  "name": "Droplab Site",
+  "summary": "Combined 2D/3D Website for the digital agency Droplab.",
+  "stack": ["Sveltekit", "Three.js", "Elysia", "Sanity"],
+  "overview": "A unique website for the digital agency Droplab, combining 2D and 3D elements to create an engaging user experience. The site blends 2D elements with the 3D scene allowing for advanced shader effects not otherwise possible without WebGL.",
+  "link": "https://droplab.com"
+}

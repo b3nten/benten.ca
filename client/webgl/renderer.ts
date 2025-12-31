@@ -74,10 +74,14 @@ export class CustomRenderPipeline implements IRenderPipeline
         this.swapChain.swap();
 
         // background pass
-        this.backgroundPass.shader.uniforms["u_Time"].value += delta;
-        this.backgroundPass.depthTexture = this.prepass.depthTexture;
-        this.backgroundPass.render(renderer, this.swapChain.writable, this.swapChain.readable);
-        this.swapChain.swap();
+        const scrollHeight = document.documentElement.scrollHeight;
+        const scrollPosition = window.scrollY;
+        if(scrollPosition < scrollHeight / 2) {
+          this.backgroundPass.shader.uniforms["u_Time"].value += delta;
+          this.backgroundPass.depthTexture = this.prepass.depthTexture;
+          this.backgroundPass.render(renderer, this.swapChain.writable, this.swapChain.readable);
+          this.swapChain.swap();
+        }
 
         // uberpass (color grading + final effects)
         this.uberPass.render(renderer, this.swapChain.writable, this.swapChain.readable);

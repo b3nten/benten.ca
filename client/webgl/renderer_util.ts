@@ -62,3 +62,21 @@ export class SwapChain {
     _target0: Three.WebGLRenderTarget;
     _target1: Three.WebGLRenderTarget
 }
+
+export interface OffscreenShaderRenderPass {
+  shader: Three.ShaderMaterial
+  output: HTMLCanvasElement
+}
+
+export class OffscreenShaderRenderer {
+  static canvas = new OffscreenCanvas(1,1)
+  static renderer = new Three.WebGLRenderer({ canvas: this.canvas })
+  static render(pass: ShaderRenderPass) {
+    this.canvas.width = pass.output.width
+    this.canvas.height = pass.output.height
+    this.renderer.setSize(pass.output.width, pass.output.height, false)
+    ScreenRenderer.render(this.renderer, pass.shader)
+    const ctx = pass.output.getContext("2d")
+    ctx.drawImage(this.canvas, 0, 0)
+  }
+}

@@ -39,70 +39,107 @@ export function WebComponent(tag: string)
 				font-family:"Jersey 10";
 			}
 
+			.vignette {
+	      box-shadow: inset 0px 0px 85px rgba(0, 0, 0, 0.4);
+			}
+
 			.border-pixels-8 {
-				clip-path: polygon(
-					0px calc(100% - 20px),
-					4px calc(100% - 20px),
-					4px calc(100% - 12px),
-					8px calc(100% - 12px),
-					8px calc(100% - 8px),
-					12px calc(100% - 8px),
-					12px calc(100% - 4px),
-					20px calc(100% - 4px),
-					20px 100%,
-					calc(100% - 20px) 100%,
-					calc(100% - 20px) calc(100% - 4px),
-					calc(100% - 12px) calc(100% - 4px),
-					calc(100% - 12px) calc(100% - 8px),
-					calc(100% - 8px) calc(100% - 8px),
-					calc(100% - 8px) calc(100% - 12px),
-					calc(100% - 4px) calc(100% - 12px),
-					calc(100% - 4px) calc(100% - 20px),
-					100% calc(100% - 20px),
-					100% 20px,
-					calc(100% - 4px) 20px,
-					calc(100% - 4px) 12px,
-					calc(100% - 8px) 12px,
-					calc(100% - 8px) 8px,
-					calc(100% - 12px) 8px,
-					calc(100% - 12px) 4px,
-					calc(100% - 20px) 4px,
-					calc(100% - 20px) 0px,
-					20px 0px,
-					20px 4px,
-					12px 4px,
-					12px 8px,
-					8px 8px,
-					8px 12px,
-					4px 12px,
-					4px 20px,
-					0px 20px
-				);
+	      clip-path: polygon(
+					0px calc(100% - 10px),
+					2px calc(100% - 10px),
+					2px calc(100% - 6px),
+					4px calc(100% - 6px),
+					4px calc(100% - 4px),
+					6px calc(100% - 4px),
+					6px calc(100% - 2px),
+					10px calc(100% - 2px),
+					10px 100%,
+					calc(100% - 10px) 100%,
+					calc(100% - 10px) calc(100% - 2px),
+					calc(100% - 6px) calc(100% - 2px),
+					calc(100% - 6px) calc(100% - 4px),
+					calc(100% - 4px) calc(100% - 4px),
+					calc(100% - 4px) calc(100% - 6px),
+					calc(100% - 2px) calc(100% - 6px),
+					calc(100% - 2px) calc(100% - 10px),
+					100% calc(100% - 10px),
+					100% 10px,
+					calc(100% - 2px) 10px,
+					calc(100% - 2px) 6px,
+					calc(100% - 4px) 6px,
+					calc(100% - 4px) 4px,
+					calc(100% - 6px) 4px,
+					calc(100% - 6px) 2px,
+					calc(100% - 10px) 2px,
+					calc(100% - 10px) 0px,
+					10px 0px,
+					10px 2px,
+					6px 2px,
+					6px 4px,
+					4px 4px,
+					4px 6px,
+					2px 6px,
+					2px 10px,
+					0px 10px
+        );
+			}
+
+			.border-pixels-6 {
+			  clip-path: polygon(
+					0px calc(100% - 8px),
+					2px calc(100% - 8px),
+					2px calc(100% - 4px),
+					4px calc(100% - 4px),
+					4px calc(100% - 2px),
+					8px calc(100% - 2px),
+					8px 100%,
+					calc(100% - 8px) 100%,
+					calc(100% - 8px) calc(100% - 2px),
+					calc(100% - 4px) calc(100% - 2px),
+					calc(100% - 4px) calc(100% - 4px),
+					calc(100% - 2px) calc(100% - 4px),
+					calc(100% - 2px) calc(100% - 8px),
+					100% calc(100% - 8px),
+					100% 8px,
+					calc(100% - 2px) 8px,
+					calc(100% - 2px) 4px,
+					calc(100% - 4px) 4px,
+					calc(100% - 4px) 2px,
+					calc(100% - 8px) 2px,
+					calc(100% - 8px) 0px,
+					8px 0px,
+					8px 2px,
+					4px 2px,
+					4px 4px,
+					2px 4px,
+					2px 8px,
+					0px 8px
+        );
 			}
 
 			.border-pixels-4 {
-				clip-path: polygon(
-					0px calc(100% - 8px),
-					4px calc(100% - 8px),
-					4px calc(100% - 4px),
-					8px calc(100% - 4px),
-					8px 100%,
-					calc(100% - 8px) 100%,
-					calc(100% - 8px) calc(100% - 4px),
-					calc(100% - 4px) calc(100% - 4px),
-					calc(100% - 4px) calc(100% - 8px),
-					100% calc(100% - 8px),
-					100% 8px,
-					calc(100% - 4px) 8px,
-					calc(100% - 4px) 4px,
-					calc(100% - 8px) 4px,
-					calc(100% - 8px) 0px,
-					8px 0px,
-					8px 4px,
-					4px 4px,
-					4px 8px,
-					0px 8px
-				);
+	      clip-path: polygon(
+          0px calc(100% - 4px),
+          2px calc(100% - 4px),
+          2px calc(100% - 2px),
+          4px calc(100% - 2px),
+          4px 100%,
+          calc(100% - 4px) 100%,
+          calc(100% - 4px) calc(100% - 2px),
+          calc(100% - 2px) calc(100% - 2px),
+          calc(100% - 2px) calc(100% - 4px),
+          100% calc(100% - 4px),
+          100% 4px,
+          calc(100% - 2px) 4px,
+          calc(100% - 2px) 2px,
+          calc(100% - 4px) 2px,
+          calc(100% - 4px) 0px,
+          4px 0px,
+          4px 2px,
+          2px 2px,
+          2px 4px,
+          0px 4px
+        );
 			}
 
 			.border-pixels-2 {

@@ -1,50 +1,50 @@
 import { css, html } from "lit";
-import { WebComponent } from "./component";
-import linkIconUrl from "./assets/link_ico.svg";
+import { WebComponent } from "../../component";
+import linkIconUrl from "../../assets/link_ico.svg";
 import * as Three from "three";
 import {
-  type OffscreenShaderRenderPass,
-  OffscreenShaderRenderer,
-} from "./webgl/renderer_util";
+    type OffscreenShaderRenderPass,
+    OffscreenShaderRenderer,
+} from "../../webgl/renderer_util";
 
 export class ScanLineHeading extends WebComponent("scan-line-heading") {
-  static styles = [
-    super.styles,
-    css`
-      :host {
-        display: block;
-      }
+    static styles = [
+        super.styles,
+        css`
+            :host {
+                display: block;
+            }
 
-      .wrapper {
-        position: relative;
-      }
+            .wrapper {
+                position: relative;
+            }
 
-      .heading {
-        position: relative;
-        image-rendering: pixelated;
-        text-align: center;
-        z-index: 1;
-        background: linear-gradient(to bottom, #ff00ff, #00ffff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 5rem;
-      }
+            .heading {
+                position: relative;
+                image-rendering: pixelated;
+                text-align: center;
+                z-index: 1;
+                background: linear-gradient(to bottom, #ff00ff, #00ffff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-size: 5rem;
+            }
 
-      .background {
-        position: absolute;
-        display: block;
-        transform: translate(-100px, -50px);
-      }
-    `,
-  ];
+            .background {
+                position: absolute;
+                display: block;
+                transform: translate(-100px, -50px);
+            }
+        `,
+    ];
 
-  shader = new Three.ShaderMaterial({
-    uniforms: {
-      u_resolution: { value: new Three.Vector2() },
-      u_time: { value: 0 },
-    },
-    vertexShader: `
+    shader = new Three.ShaderMaterial({
+        uniforms: {
+            u_resolution: { value: new Three.Vector2() },
+            u_time: { value: 0 },
+        },
+        vertexShader: `
             varying vec2 v_uv;
             void main() {
                 v_uv = uv;
@@ -52,7 +52,7 @@ export class ScanLineHeading extends WebComponent("scan-line-heading") {
                 gl_Position = projectionMatrix * mvPosition;
             }
         `,
-    fragmentShader: `
+        fragmentShader: `
             varying vec2 v_uv;
             uniform vec2 u_resolution;
             uniform float u_time;
@@ -152,235 +152,240 @@ export class ScanLineHeading extends WebComponent("scan-line-heading") {
                 gl_FragColor = vec4(finalColor, 1.0);
             }
         `,
-  });
+    });
 
-  pass?: OffscreenShaderRenderPass;
+    pass?: OffscreenShaderRenderPass;
 
-  onMounted() {
-    this.pass = {
-      output: this.shadowRoot!.querySelector("canvas")!,
-      shader: this.shader,
+    onMounted() {
+        this.pass = {
+            output: this.shadowRoot!.querySelector("canvas")!,
+            shader: this.shader,
+        };
+        this.renderCanvas();
+    }
+
+    renderCanvas = () => {
+        requestAnimationFrame(this.renderCanvas);
+        const canvas = this.pass!.output;
+        const bounds = this.getBoundingClientRect();
+        canvas.width = (bounds.width + 200) * 2;
+        canvas.height = (bounds.height + 100) * 2;
+        canvas.style.width = canvas.width / 2 + "px";
+        canvas.style.height = canvas.height / 2 + "px";
+        this.shader.uniforms.u_resolution.value.set(
+            canvas.width,
+            canvas.height,
+        );
+        this.shader.uniforms.u_time.value = performance.now() / 1000;
+        OffscreenShaderRenderer.render(this.pass!);
     };
-    this.renderCanvas();
-  }
 
-  renderCanvas = () => {
-    requestAnimationFrame(this.renderCanvas);
-    const canvas = this.pass!.output;
-    const bounds = this.getBoundingClientRect();
-    canvas.width = (bounds.width + 200) * 2;
-    canvas.height = (bounds.height + 100) * 2;
-    canvas.style.width = canvas.width / 2 + "px";
-    canvas.style.height = canvas.height / 2 + "px";
-    this.shader.uniforms.u_resolution.value.set(canvas.width, canvas.height);
-    this.shader.uniforms.u_time.value = performance.now() / 1000;
-    OffscreenShaderRenderer.render(this.pass!);
-  };
-
-  render = () => html`
-    <div class="wrapper font-pixel">
-      <canvas class="background"></canvas>
-      <h1 class="heading"><slot></slot></h1>
-    </div>
-  `;
+    render = () => html`
+        <div class="wrapper font-pixel">
+            <canvas class="background"></canvas>
+            <h1 class="heading"><slot></slot></h1>
+        </div>
+    `;
 }
 ScanLineHeading.define();
 
 export class WorkCompilation extends WebComponent("work-compilation") {
-  static styles = [
-    super.styles,
-    css`
-      :host {
-        display: block;
-        position: relative;
-        margin: auto;
-        max-width: 769px;
-      }
+    static styles = [
+        super.styles,
+        css`
+            :host {
+                display: block;
+                position: relative;
+                margin: auto;
+                max-width: 769px;
+            }
 
-      figure {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-      }
+            figure {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
 
-      .img1,
-      .img2,
-      .img3 {
-        position: relative;
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
-        width: 200px;
-      }
+            .img1,
+            .img2,
+            .img3 {
+                position: relative;
+                box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+                width: 200px;
+            }
 
-      .img1 {
-        transform: rotate(-4deg) translateX(20px);
-      }
+            .img1 {
+                transform: rotate(-4deg) translateX(20px);
+            }
 
-      .img2 {
-        transform: translateY(-20px);
-      }
+            .img2 {
+                transform: translateY(-20px);
+            }
 
-      .img3 {
-        transform: rotate(3deg) translateX(-15px);
-      }
-    `,
-  ];
+            .img3 {
+                transform: rotate(3deg) translateX(-15px);
+            }
+        `,
+    ];
 
-  render = () => html`
-    <scan-line-heading class="font-pixel">Work Compilation</scan-line-heading>
-    <!--<figure>
+    render = () => html`
+        <scan-line-heading class="font-pixel"
+            >Work Compilation</scan-line-heading
+        >
+        <!--<figure>
 			<img class="img1" src="https://picsum.photos/200/301.jpg">
 			<img class="img2" src="https://picsum.photos/200/302.jpg">
 			<img class="img3" src="https://picsum.photos/200/303.jpg">
 		</figure>-->
-  `;
+    `;
 }
 WorkCompilation.define();
 
 export class ProjectSummary extends WebComponent("project-summary") {
-  static get properties() {
-    return {
-      header: { type: String },
-    };
-  }
+    static get properties() {
+        return {
+            header: { type: String },
+        };
+    }
 
-  static styles = [
-    super.styles,
-    css`
-      :host {
-        display: block;
-        position: relative;
-        margin: auto;
-        max-width: 524px;
-      }
+    static styles = [
+        super.styles,
+        css`
+            :host {
+                display: block;
+                position: relative;
+                margin: auto;
+                max-width: 524px;
+            }
 
-      h3 {
-        font-size: 2.25rem;
-        font-weight: 400;
-        margin-bottom: 0.5rem;
-        font-family: "Pixel Font", sans-serif;
-        text-align: center;
-      }
+            h3 {
+                font-size: 2.25rem;
+                font-weight: 400;
+                margin-bottom: 0.5rem;
+                font-family: "Pixel Font", sans-serif;
+                text-align: center;
+            }
 
-      p {
-        font-size: 0.9rem;
-        opacity: 0.75;
-        margin-bottom: 3rem;
-      }
-    `,
-  ];
+            p {
+                font-size: 0.9rem;
+                opacity: 0.75;
+                margin-bottom: 3rem;
+            }
+        `,
+    ];
 
-  declare header: string;
+    declare header: string;
 
-  onMounted() {}
+    onMounted() {}
 
-  render = () => html`
-    <h3 class="font-pixel">${this.header}</h3>
-    <p><slot></slot></p>
-  `;
+    render = () => html`
+        <h3 class="font-pixel">${this.header}</h3>
+        <p><slot></slot></p>
+    `;
 }
 ProjectSummary.define();
 
 export class ImageGrid extends WebComponent("image-grid") {
-  static styles = css`
-    :host {
-      max-width: 1200px;
-      margin: auto;
-      display: grid;
-      grid-template-columns: repeat(var(--columns, 6), 1fr);
-      gap: 1.5rem;
-    }
-  `;
+    static styles = css`
+        :host {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(var(--columns, 6), 1fr);
+            gap: 1.5rem;
+        }
+    `;
 
-  render = () => html` <slot></slot> `;
+    render = () => html` <slot></slot> `;
 }
 ImageGrid.define();
 
 export class GridImage extends WebComponent("grid-image") {
-  static get properties() {
-    return {
-      src: { type: String },
-      alt: { type: String },
-      href: { type: String },
-      span: { type: Number, reflect: true, default: 1 },
-    };
-  }
+    static get properties() {
+        return {
+            src: { type: String },
+            alt: { type: String },
+            href: { type: String },
+            span: { type: Number, reflect: true, default: 1 },
+        };
+    }
 
-  static styles = [
-    super.styles,
-    css`
-      :host {
-        position: relative;
-        height: 400px;
-      }
+    static styles = [
+        super.styles,
+        css`
+            :host {
+                position: relative;
+                height: 400px;
+            }
 
-      img {
-        position: relative;
-        width: 100%;
-        height: 400px;
-        object-fit: cover;
-        z-index: 1;
-        margin: auto;
-      }
+            img {
+                position: relative;
+                width: 100%;
+                height: 400px;
+                object-fit: cover;
+                z-index: 1;
+                margin: auto;
+            }
 
-      .background {
-        position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
-        background: violet;
-      }
+            .background {
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: violet;
+            }
 
-      .outlink {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        z-index: 10;
-        background: violet;
-        width: 32px;
-        height: 32px;
-        opacity: 0.5;
-      }
+            .outlink {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                z-index: 10;
+                background: violet;
+                width: 32px;
+                height: 32px;
+                opacity: 0.5;
+            }
 
-      .outlink:hover {
-        opacity: 1;
-      }
+            .outlink:hover {
+                opacity: 1;
+            }
 
-      .glow {
-        position: absolute;
-        top: 25px;
-        left: 25px;
-        right: 25px;
-        bottom: 25px;
-        background: violet;
-        filter: blur(30px);
-        z-index: 0;
-      }
+            .glow {
+                position: absolute;
+                top: 25px;
+                left: 25px;
+                right: 25px;
+                bottom: 25px;
+                background: violet;
+                filter: blur(30px);
+                z-index: 0;
+            }
 
-      .link-icon {
-        width: 32px;
-        height: 32px;
-      }
-    `,
-  ];
+            .link-icon {
+                width: 32px;
+                height: 32px;
+            }
+        `,
+    ];
 
-  declare src: string;
-  declare span: number;
-  declare href: string;
-  declare alt: string;
+    declare src: string;
+    declare span: number;
+    declare href: string;
+    declare alt: string;
 
-  onMount(): void {
-    this.style.gridColumn = `span ${this.span}`;
-  }
+    onMount(): void {
+        this.style.gridColumn = `span ${this.span}`;
+    }
 
-  render = () => html`
-    <img class="border-pixels-8" src="${this.src}" alt="${this.alt}" />
-    <a class="outlink border-pixels-4" href="${this.href}" target="_blank"
-      ><img class="link-icon" src="${linkIconUrl}"
-    /></a>
-    <div class="background border-pixels-8"></div>
-    <div class="glow"></div>
-  `;
+    render = () => html`
+        <img class="border-pixels-8" src="${this.src}" alt="${this.alt}" />
+        <a class="outlink border-pixels-4" href="${this.href}" target="_blank"
+            ><img class="link-icon" src="${linkIconUrl}"
+        /></a>
+        <div class="background border-pixels-8"></div>
+        <div class="glow"></div>
+    `;
 }
 GridImage.define();

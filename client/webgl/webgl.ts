@@ -6,53 +6,49 @@ import { loadRapier } from "./physics";
 import { globalAssets } from "../assets";
 import { CustomRenderPipeline } from "./renderer";
 
-export class WebGlScene extends WebComponent("webgl-scene")
-{
-	static styles = css`
-		:host {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			pointer-events: none;
-			z-index: 0;
-		}
-		canvas {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			z-index: 0;
-		}
-	`;
+export class WebGlScene extends WebComponent("webgl-scene") {
+  static styles = css`
+    :host {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    canvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  `;
 
-	get canvas()
-	{
-		assert(this.shadowRoot, "No shadow root");
-		const canvas = this.shadowRoot.querySelector("canvas");
-		assert(canvas, "No canvas element found");
-		return canvas;
-	}
+  get canvas() {
+    assert(this.shadowRoot, "No shadow root");
+    const canvas = this.shadowRoot.querySelector("canvas");
+    assert(canvas, "No canvas element found");
+    return canvas;
+  }
 
-	async onMounted()
-	{
-		await Promise.all([globalAssets.load(), loadRapier()])
-		this._frameloop = new Engine({
-			canvas: this.canvas,
-			init: webglEntry,
-			renderPipeline: new CustomRenderPipeline,
-		}).run()
-	}
+  async onMounted() {
+    await Promise.all([globalAssets.load(), loadRapier()]);
+    this._frameloop = new Engine({
+      canvas: this.canvas,
+      init: webglEntry,
+      renderPipeline: new CustomRenderPipeline(),
+    }).run();
+  }
 
-	onUnmount()
-	{
-		this._frameloop?.stop();
-	}
+  onUnmount() {
+    this._frameloop?.stop();
+  }
 
-	render()
-	{
-		return html`<canvas></canvas>`;
-	}
+  render() {
+    return html`<canvas></canvas>`;
+  }
 
-	private _frameloop: Frameloop | undefined;
+  private _frameloop: Frameloop | undefined;
 }
+WebGlScene.define();

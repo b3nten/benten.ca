@@ -1,5 +1,5 @@
-import server from "../dist/main"
+import server from "../dist/main";
 
 export default {
-	fetch: server.fetch
-}
+  fetch: server,
+};

@@ -1,26 +1,36 @@
-
-import { createPrefab, Input, lerp, mustExist, System, Transform, Viewport, type Component } from "elysiatech";
+import {
+  createPrefab,
+  Input,
+  lerp,
+  mustExist,
+  System,
+  Transform,
+  Viewport,
+  type Component,
+} from "elysiatech";
 import { ColliderComponent, RigidBodyComponent } from "./physics";
 import { Vector3 } from "three";
 
 export const PointerPrefab = createPrefab((world) => {
   const transform = new Transform().setPositionScalar(100);
   const pc = new PointerComponent();
-  const rb = new RigidBodyComponent(rapier.RigidBodyDesc.kinematicPositionBased());
+  const rb = new RigidBodyComponent(
+    rapier.RigidBodyDesc.kinematicPositionBased(),
+  );
   const collider = new ColliderComponent(rapier.ColliderDesc.ball(2));
   return world.createEntityWith(transform, pc, rb, collider);
 });
 
 class PointerComponent implements Component {}
 
-export class PointerMovementSystem extends System
-{
-  update()
-  {
+export class PointerMovementSystem extends System {
+  update() {
     let viewport = mustExist(this.world.getSingletonComponent(Viewport));
 
-    for (const [, , rbody] of this.world.componentIterator(PointerComponent, RigidBodyComponent))
-    {
+    for (const [, , rbody] of this.world.componentIterator(
+      PointerComponent,
+      RigidBodyComponent,
+    )) {
       const rb = rbody.impl;
       if (!rb) continue;
 

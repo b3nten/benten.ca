@@ -1,25 +1,21 @@
 {
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build"
-	},
-	"dependencies": {
-		"@awesome.me/webawesome": "^3.0.0",
-		"@dimforge/rapier3d": "^0.19.3",
-		"@remix-run/node-fetch-server": "^0.12.0",
-		"@types/three": "^0.181.0",
-		"elysiatech": "^2.0.0-beta.52",
-		"itty-router": "^5.0.22",
-		"lit": "^3.3.1",
-		"n8ao": "^1.10.1",
-		"postprocessing": "^6.38.0",
-		"three": "^0.181.1",
-		"troika-three-text": "^0.52.4",
-		"vite": "^7.2.2",
-		"vite-plugin-wasm": "^3.5.0"
-	},
-	"devDependencies": {
-		"@types/node": "^24.10.1"
-	}
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d": "^0.19.3",
+    "@remix-run/node-fetch-server": "^0.12.0",
+    "@types/three": "^0.181.0",
+    "elysiatech": "^2.0.0-beta.52",
+    "lit": "^3.3.1",
+    "three": "^0.181.1",
+    "troika-three-text": "^0.52.4",
+    "vite": "^7.2.2",
+    "vite-plugin-wasm": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
+  }
 }
